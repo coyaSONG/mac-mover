@@ -1,0 +1,141 @@
+{
+  "schemaVersion": "1.0.0",
+  "exportedAt": "2026-03-02T10:30:00+09:00",
+  "machine": {
+    "hostname": "old-macbook-pro",
+    "architecture": "arm64",
+    "macosVersion": "15.3",
+    "homeDirectory": "/Users/example",
+    "homebrewPrefix": "/opt/homebrew",
+    "userName": "example"
+  },
+  "items": [
+    {
+      "id": "brew.formula.git",
+      "kind": "brew_formula",
+      "title": "git",
+      "restorePhase": "packages",
+      "source": {
+        "command": "brew bundle dump"
+      },
+      "payload": {
+        "name": "git"
+      },
+      "secret": false,
+      "risk": "low",
+      "verify": {
+        "command": "git --version"
+      },
+      "notes": []
+    },
+    {
+      "id": "dotfile.zshrc",
+      "kind": "dotfile",
+      "title": "~/.zshrc",
+      "restorePhase": "config",
+      "source": {
+        "path": "~/.zshrc"
+      },
+      "payload": {
+        "relativePath": "files/dotfiles/.zshrc"
+      },
+      "secret": false,
+      "risk": "medium",
+      "verify": {
+        "expectedFile": "~/.zshrc"
+      },
+      "notes": [
+        "overwrite creates timestamped .bak"
+      ]
+    },
+    {
+      "id": "git.global.user.email",
+      "kind": "git_global",
+      "title": "git user.email",
+      "restorePhase": "config",
+      "source": {
+        "path": "~/.gitconfig"
+      },
+      "payload": {
+        "key": "user.email",
+        "value": "masked@example.com"
+      },
+      "secret": false,
+      "risk": "low",
+      "verify": {
+        "command": "git config --global --get user.email",
+        "expectedValue": "masked@example.com"
+      },
+      "notes": []
+    },
+    {
+      "id": "vscode.extension.ms-python.python",
+      "kind": "vscode_extension",
+      "title": "ms-python.python",
+      "restorePhase": "ide",
+      "source": {
+        "command": "code --list-extensions --show-versions"
+      },
+      "payload": {
+        "identifier": "ms-python.python",
+        "version": "2026.1.0"
+      },
+      "secret": false,
+      "risk": "low",
+      "verify": {
+        "command": "code --list-extensions --show-versions"
+      },
+      "notes": []
+    }
+  ],
+  "restorePlan": [
+    {
+      "phase": "preflight",
+      "itemIds": []
+    },
+    {
+      "phase": "packages",
+      "itemIds": [
+        "brew.formula.git"
+      ]
+    },
+    {
+      "phase": "config",
+      "itemIds": [
+        "dotfile.zshrc",
+        "git.global.user.email"
+      ]
+    },
+    {
+      "phase": "ide",
+      "itemIds": [
+        "vscode.extension.ms-python.python"
+      ]
+    },
+    {
+      "phase": "verify",
+      "itemIds": [
+        "brew.formula.git",
+        "dotfile.zshrc",
+        "git.global.user.email",
+        "vscode.extension.ms-python.python"
+      ]
+    }
+  ],
+  "manualTasks": [
+    {
+      "id": "manual.rosetta",
+      "title": "Rosetta 설치 필요 가능성",
+      "reason": "일부 cask는 Apple silicon에서 Rosetta를 요구할 수 있음",
+      "action": "필요 시 Rosetta를 설치한 뒤 import를 다시 실행",
+      "blocking": false
+    }
+  ],
+  "reports": {
+    "exportSummaryPath": "reports/export-summary.md",
+    "verifySummaryPath": "reports/verify-summary.md",
+    "warnings": [
+      "SSH private key는 기본 제외 정책으로 package에 포함되지 않음"
+    ]
+  }
+}

@@ -1,0 +1,254 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/schemas/dev-env-transfer-manifest-1.0.0.schema.json",
+  "title": "DevEnvTransferManifest",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "exportedAt",
+    "machine",
+    "items",
+    "restorePlan",
+    "reports"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "const": "1.0.0"
+    },
+    "exportedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "machine": {
+      "type": "object",
+      "required": [
+        "hostname",
+        "architecture",
+        "macosVersion",
+        "homeDirectory",
+        "homebrewPrefix"
+      ],
+      "properties": {
+        "hostname": {
+          "type": "string"
+        },
+        "architecture": {
+          "type": "string",
+          "enum": [
+            "arm64",
+            "x86_64"
+          ]
+        },
+        "macosVersion": {
+          "type": "string"
+        },
+        "homeDirectory": {
+          "type": "string"
+        },
+        "homebrewPrefix": {
+          "type": "string"
+        },
+        "userName": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/item"
+      },
+      "minItems": 1
+    },
+    "restorePlan": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/restoreStep"
+      }
+    },
+    "manualTasks": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/manualTask"
+      },
+      "default": []
+    },
+    "reports": {
+      "type": "object",
+      "required": [
+        "exportSummaryPath"
+      ],
+      "properties": {
+        "exportSummaryPath": {
+          "type": "string"
+        },
+        "verifySummaryPath": {
+          "type": "string"
+        },
+        "warnings": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "$defs": {
+    "item": {
+      "type": "object",
+      "required": [
+        "id",
+        "kind",
+        "title",
+        "restorePhase",
+        "payload",
+        "secret"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9._-]+$"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "brew_formula",
+            "brew_cask",
+            "brew_tap",
+            "brew_service",
+            "dotfile",
+            "git_global",
+            "vscode_extension",
+            "vscode_settings",
+            "manual_note"
+          ]
+        },
+        "title": {
+          "type": "string"
+        },
+        "restorePhase": {
+          "type": "string",
+          "enum": [
+            "preflight",
+            "bootstrap",
+            "packages",
+            "config",
+            "ide",
+            "manual",
+            "verify"
+          ]
+        },
+        "source": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string"
+            },
+            "command": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": true
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "secret": {
+          "type": "boolean"
+        },
+        "risk": {
+          "type": "string",
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ]
+        },
+        "verify": {
+          "type": "object",
+          "properties": {
+            "command": {
+              "type": "string"
+            },
+            "expectedFile": {
+              "type": "string"
+            },
+            "expectedValue": {}
+          },
+          "additionalProperties": false
+        },
+        "notes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        }
+      },
+      "additionalProperties": false
+    },
+    "restoreStep": {
+      "type": "object",
+      "required": [
+        "phase",
+        "itemIds"
+      ],
+      "properties": {
+        "phase": {
+          "type": "string",
+          "enum": [
+            "preflight",
+            "bootstrap",
+            "packages",
+            "config",
+            "ide",
+            "manual",
+            "verify"
+          ]
+        },
+        "itemIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "manualTask": {
+      "type": "object",
+      "required": [
+        "id",
+        "title",
+        "reason",
+        "action"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "action": {
+          "type": "string"
+        },
+        "blocking": {
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
