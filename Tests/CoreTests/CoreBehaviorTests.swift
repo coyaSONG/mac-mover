@@ -91,7 +91,7 @@ final class CoreBehaviorTests: XCTestCase {
             timestamp: Date(timeIntervalSince1970: 1_735_872_123)
         )
 
-        XCTAssertEqual(backupURL?.lastPathComponent, ".zshrc.bak.20250101-014203")
+        XCTAssertEqual(backupURL?.lastPathComponent, ".zshrc.bak.20250103-024203")
         XCTAssertEqual(String(data: try fileSystem.readData(at: destinationURL), encoding: .utf8), "new-value")
         XCTAssertEqual(String(data: try fileSystem.readData(at: backupURL!), encoding: .utf8), "old-value")
     }

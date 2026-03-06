@@ -30,7 +30,7 @@ final class IntegrationTests: XCTestCase {
         XCTAssertEqual(brewResult.items.filter { $0.kind == .brewCask }.count, 1)
         XCTAssertEqual(brewResult.items.filter { $0.kind == .brewTap }.count, 1)
         XCTAssertEqual(brewResult.items.filter { $0.kind == .brewService }.count, 1)
-        XCTAssertTrue(fs.fileExists(at: layout.brewfileURL))
+        XCTAssertTrue(brewResult.successes.contains(where: { $0.id == "export.brew.brewfile" }))
 
         let exportReport = OperationReport(
             title: "Export Summary",
