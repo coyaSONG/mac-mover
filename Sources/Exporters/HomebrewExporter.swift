@@ -66,6 +66,14 @@ struct HomebrewExporter {
                     notes: []
                 )
             )
+            result.successes.append(
+                StepResult(
+                    id: "export.brew.formula.\(IdentifierSanitizer.sanitize(formula))",
+                    title: "brew formula \(formula)",
+                    status: .success,
+                    detail: formula
+                )
+            )
         }
 
         let casks = readLines(command: ["brew", "list", "--cask"])
@@ -84,6 +92,14 @@ struct HomebrewExporter {
                     notes: []
                 )
             )
+            result.successes.append(
+                StepResult(
+                    id: "export.brew.cask.\(IdentifierSanitizer.sanitize(cask))",
+                    title: "brew cask \(cask)",
+                    status: .success,
+                    detail: cask
+                )
+            )
         }
 
         let taps = readLines(command: ["brew", "tap"])
@@ -100,6 +116,14 @@ struct HomebrewExporter {
                     risk: .low,
                     verify: VerifySpec(command: "brew tap", expectedValue: .string(tap)),
                     notes: []
+                )
+            )
+            result.successes.append(
+                StepResult(
+                    id: "export.brew.tap.\(IdentifierSanitizer.sanitize(tap))",
+                    title: "brew tap \(tap)",
+                    status: .success,
+                    detail: tap
                 )
             )
         }
@@ -121,6 +145,14 @@ struct HomebrewExporter {
                     risk: .medium,
                     verify: VerifySpec(command: "brew services list", expectedValue: .string(service)),
                     notes: []
+                )
+            )
+            result.successes.append(
+                StepResult(
+                    id: "export.brew.service.\(IdentifierSanitizer.sanitize(service))",
+                    title: "brew service \(service)",
+                    status: .success,
+                    detail: service
                 )
             )
         }

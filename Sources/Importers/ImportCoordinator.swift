@@ -77,7 +77,7 @@ public struct ImportCoordinator {
         }
 
         aggregate.append(try applyDotfiles(manifest: manifest, layout: layout, homeDirectory: preflight.machine.homeDirectory))
-        aggregate.append(applyGitGlobal(manifest: manifest))
+        aggregate.append(try applyGitGlobal(manifest: manifest, homeDirectory: preflight.machine.homeDirectory))
         aggregate.append(try applyVSCode(manifest: manifest, layout: layout, homeDirectory: preflight.machine.homeDirectory))
 
         var importReport = OperationReport(
@@ -140,15 +140,34 @@ public struct ImportCoordinator {
         return result
     }
 
-    private func applyGitGlobal(manifest: Manifest) -> ComponentImportResult {
+    private func applyGitGlobal(manifest: Manifest, homeDirectory: String) throws -> ComponentImportResult {
         var result = ComponentImportResult()
         let gitItems = manifest.items.filter { $0.kind == .gitGlobal }
+        guard !gitItems.isEmpty else { return result }
 
         guard runner.commandExists("git") else {
-            if !gitItems.isEmpty {
-                result.skipped.append(StepResult(id: "import.git", title: "Git global config", status: .skipped, detail: "git command not found"))
-            }
+            result.skipped.append(StepResult(id: "import.git", title: "Git global config", status: .skipped, detail: "git command not found"))
             return result
+        }
+
+        let gitConfigURL = URL(fileURLWithPath: homeDirectory).appendingPathComponent(".gitconfig")
+        var backupURL: URL?
+
+        if fileSystem.fileExists(at: gitConfigURL) {
+            result.manualTasks.append(manualTaskEngine.taskForOverwriteConfirmation("~/.gitconfig"))
+            do {
+                backupURL = try fileRestorer.backupIfNeeded(destination: gitConfigURL)
+            } catch {
+                result.failures.append(
+                    StepResult(
+                        id: "import.git.backup",
+                        title: "Git global config backup",
+                        status: .failed,
+                        detail: error.localizedDescription
+                    )
+                )
+                return result
+            }
         }
 
         for item in gitItems {
@@ -160,7 +179,8 @@ public struct ImportCoordinator {
 
             do {
                 _ = try runner.run(executable: "/usr/bin/env", arguments: ["git", "config", "--global", key, value])
-                result.successes.append(StepResult(id: item.id, title: item.title, status: .success, detail: "git config applied"))
+                let detail = backupURL == nil ? "git config applied" : "git config applied with backup: \(backupURL!.lastPathComponent)"
+                result.successes.append(StepResult(id: item.id, title: item.title, status: .success, detail: detail))
             } catch {
                 result.failures.append(StepResult(id: item.id, title: item.title, status: .failed, detail: error.localizedDescription))
             }

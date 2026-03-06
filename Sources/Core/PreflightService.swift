@@ -25,6 +25,7 @@ public struct PreflightService {
         let machine = machineCollector.collect()
         var checks: [PreflightCheck] = []
         let brewAvailable = runner.commandExists("brew")
+        let resolvedBrewPrefix = brewAvailable ? readBrewPrefix() : nil
         let gitAvailable = runner.commandExists("git")
         let vscodeApp = URL(fileURLWithPath: "/Applications/Visual Studio Code.app")
         let vscodeInstalled = fileSystem.fileExists(at: vscodeApp)
@@ -66,7 +67,7 @@ public struct PreflightService {
                 id: "preflight.brew",
                 title: "Homebrew installed",
                 passed: brewAvailable,
-                detail: brewAvailable ? machine.homebrewPrefix : "brew command not found",
+                detail: brewAvailable ? (resolvedBrewPrefix ?? machine.homebrewPrefix) : "brew command not found",
                 blocking: false
             )
         )
@@ -75,8 +76,8 @@ public struct PreflightService {
             PreflightCheck(
                 id: "preflight.brew-prefix",
                 title: "Homebrew prefix",
-                passed: brewAvailable && !machine.homebrewPrefix.isEmpty,
-                detail: brewAvailable ? machine.homebrewPrefix : "brew prefix unavailable",
+                passed: resolvedBrewPrefix?.isEmpty == false,
+                detail: brewAvailable ? (resolvedBrewPrefix ?? "brew --prefix failed") : "brew prefix unavailable",
                 blocking: false
             )
         )
@@ -128,6 +129,15 @@ public struct PreflightService {
         }
 
         return PreflightResult(machine: machine, checks: checks)
+    }
+
+    private func readBrewPrefix() -> String? {
+        guard let output = try? runner.run(executable: "/usr/bin/env", arguments: ["brew", "--prefix"]).stdout else {
+            return nil
+        }
+
+        let prefix = output.trimmingCharacters(in: .whitespacesAndNewlines)
+        return prefix.isEmpty ? nil : prefix
     }
 
     private func checkWritePermission(for url: URL) -> PreflightCheck {
