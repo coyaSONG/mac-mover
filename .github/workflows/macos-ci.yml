@@ -1,0 +1,23 @@
+name: macOS CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-and-test:
+    runs-on: macos-14
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Swift Build
+        run: swift build
+
+      - name: Swift Test
+        run: swift test
+
+      - name: Xcodebuild Checks
+        env:
+          REQUIRE_XCODEBUILD: "1"
+        run: ./scripts/xcodebuild-check.sh

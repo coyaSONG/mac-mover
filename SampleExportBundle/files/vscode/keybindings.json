@@ -1,0 +1,6 @@
+[
+  {
+    "key": "cmd+shift+t",
+    "command": "workbench.action.reopenClosedEditor"
+  }
+]

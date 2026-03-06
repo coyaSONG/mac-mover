@@ -1,0 +1,4 @@
+tap "homebrew/cask"
+brew "git"
+brew "python"
+cask "iterm2"
