@@ -24,6 +24,15 @@ Deliver Mac Dev Env Mover incrementally while keeping scope limited to the v1 ca
 5. Keep backup-on-overwrite and manual task generation visible in reports.
 6. Expand tests for preflight checks, overwrite backups, Brewfile output, and report generation.
 
+### Phase 3
+
+1. Support VS Code export/import for settings, keybindings, snippets, and extensions.
+2. Keep verify coverage for Brew, dotfiles, Git global config, and VS Code extensions.
+3. Surface export/import/verify reports plus logs through the SwiftUI shell.
+4. Load selected import bundles into a preview state before restore so preflight checks and manual tasks are visible.
+5. Maintain sample bundle data and broaden tests for verify and partial-failure reporting.
+6. Finalize README usage flow, setup notes, and scope boundaries for the v1 baseline.
+
 ## Remaining Focus
 
 - Docker, JetBrains, Keychain, browser sessions, cloud sync

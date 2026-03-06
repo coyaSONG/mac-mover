@@ -129,6 +129,95 @@ final class CoreBehaviorTests: XCTestCase {
         XCTAssertEqual(String(data: try fileSystem.readData(at: backupURL!), encoding: .utf8), "old-value")
     }
 
+    func testBundlePreviewLoadsManualTasksReportsAndLogs() throws {
+        let homeDirectory = FileManager.default.homeDirectoryForCurrentUser.path
+        let bundleURL = URL(fileURLWithPath: "/tmp/preview-bundle")
+        let layout = BundleLayout(root: bundleURL)
+        let fileSystem = InMemoryFileSystem(
+            files: [
+                layout.reportsDirectory.appendingPathComponent("export-summary.md").path: Data("# Export\n".utf8),
+                layout.reportsDirectory.appendingPathComponent("verify-summary.md").path: Data("# Verify\n".utf8),
+                layout.logsDirectory.appendingPathComponent("import-log.jsonl").path: Data("{\"message\":\"ok\"}\n".utf8)
+            ],
+            directories: [
+                bundleURL.path,
+                layout.reportsDirectory.path,
+                layout.logsDirectory.path,
+                homeDirectory,
+                "/Applications/Visual Studio Code.app"
+            ]
+        )
+        let manifest = Manifest(
+            exportedAt: Date(timeIntervalSince1970: 1_700_000_000),
+            machine: MachineInfo(
+                hostname: "source-host",
+                architecture: .arm64,
+                macosVersion: "15.3",
+                homeDirectory: homeDirectory,
+                homebrewPrefix: "/opt/homebrew",
+                userName: "tester"
+            ),
+            items: [
+                ManifestItem(
+                    id: "dotfile.zshrc",
+                    kind: .dotfile,
+                    title: "~/.zshrc",
+                    restorePhase: .config,
+                    source: ItemSource(path: "~/.zshrc"),
+                    payload: ["relativePath": .string("files/dotfiles/.zshrc")],
+                    secret: false
+                )
+            ],
+            restorePlan: [
+                RestoreStep(phase: .config, itemIds: ["dotfile.zshrc"]),
+                RestoreStep(phase: .verify, itemIds: ["dotfile.zshrc"])
+            ],
+            manualTasks: [
+                ManualTask(
+                    id: "manual.overwrite.zshrc",
+                    title: "Overwrite backup created",
+                    reason: "~/.zshrc already exists",
+                    action: "Review the backup before replacing the file.",
+                    blocking: false
+                )
+            ],
+            reports: ManifestReports(
+                exportSummaryPath: "reports/export-summary.md",
+                verifySummaryPath: "reports/verify-summary.md"
+            )
+        )
+        let store = ManifestStore(fileSystem: fileSystem)
+        try store.write(manifest, to: layout.manifestURL)
+
+        let runner = MockCommandRunner(stubs: [
+            .init(executable: "/bin/hostname", arguments: [], result: .success(.init(executable: "/bin/hostname", arguments: [], exitCode: 0, stdout: "test-host\n", stderr: ""))),
+            .init(executable: "/usr/bin/uname", arguments: ["-m"], result: .success(.init(executable: "/usr/bin/uname", arguments: ["-m"], exitCode: 0, stdout: "arm64\n", stderr: ""))),
+            .init(executable: "/usr/bin/sw_vers", arguments: ["-productVersion"], result: .success(.init(executable: "/usr/bin/sw_vers", arguments: ["-productVersion"], exitCode: 0, stdout: "15.3\n", stderr: ""))),
+            .init(executable: "/usr/bin/env", arguments: ["which", "brew"], result: .success(.init(executable: "/usr/bin/env", arguments: ["which", "brew"], exitCode: 0, stdout: "/opt/homebrew/bin/brew\n", stderr: ""))),
+            .init(executable: "/usr/bin/env", arguments: ["brew", "--prefix"], result: .success(.init(executable: "/usr/bin/env", arguments: ["brew", "--prefix"], exitCode: 0, stdout: "/opt/homebrew\n", stderr: ""))),
+            .init(executable: "/usr/bin/env", arguments: ["which", "git"], result: .success(.init(executable: "/usr/bin/env", arguments: ["which", "git"], exitCode: 0, stdout: "/usr/bin/git\n", stderr: ""))),
+            .init(executable: "/usr/bin/env", arguments: ["which", "code"], result: .success(.init(executable: "/usr/bin/env", arguments: ["which", "code"], exitCode: 0, stdout: "/usr/local/bin/code\n", stderr: "")))
+        ])
+        let previewService = BundlePreviewService(
+            fileSystem: fileSystem,
+            bundleValidator: BundleValidator(fileSystem: fileSystem, manifestStore: store),
+            preflightService: PreflightService(
+                runner: runner,
+                fileSystem: fileSystem,
+                machineCollector: MachineInfoCollector(runner: runner)
+            )
+        )
+
+        let preview = try previewService.load(from: bundleURL)
+
+        XCTAssertEqual(preview.manifest.manualTasks.count, 1)
+        XCTAssertEqual(preview.exportSummary, "# Export\n")
+        XCTAssertTrue(preview.importSummary.hasPrefix("Not found:"))
+        XCTAssertEqual(preview.verifySummary, "# Verify\n")
+        XCTAssertEqual(preview.logsPreview, "{\"message\":\"ok\"}\n")
+        XCTAssertTrue(preview.preflight.checks.contains(where: { $0.id == "preflight.bundle.exists" && $0.passed }))
+    }
+
     func testReportGenerationIncludesSections() {
         let report = OperationReport(
             title: "Verify Summary",

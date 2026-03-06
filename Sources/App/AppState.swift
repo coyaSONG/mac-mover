@@ -3,6 +3,7 @@ import SwiftUI
 import AppKit
 import SharedModels
 import Core
+import Reporting
 import Exporters
 import Importers
 
@@ -23,6 +24,10 @@ final class AppState: ObservableObject {
     @Published var lastImportBundleURL: URL?
 
     private let preflightService = PreflightService()
+    private let bundlePreviewService = BundlePreviewService()
+    private let bundleValidator = BundleValidator()
+    private let verifyEngine = VerifyEngine()
+    private let reportWriter = ReportFileWriter()
     private let exportCoordinator = ExportCoordinator()
     private let importCoordinator = ImportCoordinator()
 
@@ -79,9 +84,28 @@ final class AppState: ObservableObject {
     }
 
     func runImportPreflight(bundleURL: URL) {
-        let preflight = preflightService.run(mode: .import(bundle: bundleURL))
-        preflightChecks = preflight.checks
-        machineSummary = currentMachineSummary()
+        do {
+            let preview = try bundlePreviewService.load(from: bundleURL)
+            lastImportBundleURL = preview.bundleURL
+            manualTasks = preview.manifest.manualTasks
+            preflightChecks = preview.preflight.checks
+            exportSummary = preview.exportSummary
+            importSummary = preview.importSummary
+            verifySummary = preview.verifySummary
+            logsPreview = preview.logsPreview
+            machineSummary = currentMachineSummary()
+            statusMessage = preview.preflight.hasBlockingFailure ? "Import bundle has blocking preflight issues" : "Import bundle ready"
+        } catch {
+            lastImportBundleURL = nil
+            manualTasks = []
+            preflightChecks = []
+            exportSummary = "No export executed"
+            importSummary = "No import executed"
+            verifySummary = "No verify executed"
+            logsPreview = "No logs"
+            machineSummary = currentMachineSummary()
+            statusMessage = "Import preflight failed: \(error.localizedDescription)"
+        }
     }
 
     func runImport() {
@@ -105,6 +129,39 @@ final class AppState: ObservableObject {
                 statusMessage = "Import completed"
             } catch {
                 statusMessage = "Import failed: \(error.localizedDescription)"
+            }
+        }
+    }
+
+    func runVerify() {
+        guard !importPath.isEmpty else {
+            statusMessage = "Select an import bundle first"
+            return
+        }
+
+        let source = URL(fileURLWithPath: importPath)
+        statusMessage = "Verify running..."
+
+        Task {
+            do {
+                let manifest = try bundleValidator.validateBundle(at: source)
+                let preflight = preflightService.run(mode: .import(bundle: source))
+                preflightChecks = preflight.checks
+
+                if preflight.hasBlockingFailure {
+                    statusMessage = "Verify blocked by preflight"
+                    return
+                }
+
+                let report = verifyEngine.verify(items: manifest.items, homeDirectory: preflight.machine.homeDirectory)
+                try reportWriter.writeReport(report, to: BundleLayout(root: source).verifySummaryURL)
+
+                manualTasks = manifest.manualTasks
+                verifySummary = readFile(at: source.appendingPathComponent("reports/verify-summary.md"))
+                logsPreview = readLogPreview(at: source.appendingPathComponent("logs"))
+                statusMessage = report.failures.isEmpty ? "Verify completed" : "Verify completed with failures"
+            } catch {
+                statusMessage = "Verify failed: \(error.localizedDescription)"
             }
         }
     }

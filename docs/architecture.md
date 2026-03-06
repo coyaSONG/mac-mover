@@ -4,15 +4,18 @@
 
 Mac Dev Env Mover is a native macOS app that exports a personal development environment into a local bundle and later imports that bundle onto another Mac. The product is intentionally narrower than full-machine migration: it captures developer tooling state, configuration, and verification artifacts.
 
-## Phase 2 Focus
+## Phase 3 Focus
 
-The current repository state includes the Phase 1 foundation and the Phase 2 workflow baseline:
+The current repository state includes the Phase 1 foundation through the Phase 3 v1 workflow baseline:
 
 - the macOS app scaffold and SwiftUI shell
 - the shared manifest contract used across modules
 - file-backed manifest persistence
 - preflight checks for machine compatibility and destination writeability
 - Homebrew, dotfile allowlist, and Git global export/import services
+- VS Code export/import for settings, keybindings, snippets, and extensions
+- bundle preview loading for import selection so manual tasks, reports, and logs are visible before restore
+- verify checks for Brew, dotfiles, Git global config, and VS Code extensions
 - backup-on-overwrite safeguards and manual task surfacing
 - Markdown reporting primitives and core workflow tests
 
@@ -48,10 +51,11 @@ Restore phases are ordered explicitly through `RestorePhase.order`, which allows
 ## Data Flow
 
 1. `PreflightService` gathers machine metadata and checks whether export or import can proceed safely.
-2. Export services gather Homebrew, dotfile, Git, and later IDE items into manifest entries.
+2. Export services gather Homebrew, dotfile, Git, and VS Code items into manifest entries.
 3. `ManifestStore` writes the manifest JSON into the bundle.
 4. `ReportFileWriter` and `MarkdownReportWriter` render human-readable summaries into `reports/`.
-5. During import, the same manifest models drive package restore, file restore with backups, manual task surfacing, and verification.
+5. `BundlePreviewService` validates a selected import bundle and reads its manifest, reports, and logs into the SwiftUI shell before import starts.
+6. During import, the same manifest models drive package restore, file restore with backups, manual task surfacing, and verification.
 
 ## Safety Defaults
 
@@ -70,5 +74,7 @@ Current tests focus on deterministic behavior:
 - backup filename generation and overwrite backup behavior
 - path normalization
 - Brewfile and Markdown report generation
+- VS Code export/import paths and extension parsing
+- verify report generation, including partial-failure cases
 
-Integration-style tests cover the Phase 2 exporter/importer baseline, while later IDE-specific behavior remains for the next phase.
+Integration-style tests cover the current exporter/importer baseline, and the app shell now consumes bundle previews plus verify output through the same shared services.

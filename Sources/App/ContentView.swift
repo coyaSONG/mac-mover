@@ -91,6 +91,7 @@ private struct ImportTab: View {
                 TextField("Import bundle path", text: $appState.importPath)
                 Button("Browse", action: appState.chooseImportFolder)
                 Button("Run Import", action: appState.runImport)
+                Button("Run Verify", action: appState.runVerify)
             }
 
             GroupBox("Preflight Results") {
@@ -133,6 +134,15 @@ private struct ReportsTab: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
+            GroupBox("Export Report") {
+                ScrollView {
+                    Text(appState.exportSummary)
+                        .font(.system(.body, design: .monospaced))
+                        .textSelection(.enabled)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+            }
+
             GroupBox("Import Report") {
                 ScrollView {
                     Text(appState.importSummary)

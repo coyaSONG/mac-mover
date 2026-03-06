@@ -4,7 +4,7 @@ Local-only macOS app for recreating a personal developer environment on a new Ma
 
 ## Current Status
 
-The repository now covers the Phase 1 foundation plus the Phase 2 workflow baseline:
+The repository now covers the Phase 1 foundation through the Phase 3 v1 workflow baseline:
 
 - macOS app scaffold with SwiftUI tabs for Overview, Export, Import, and Reports / Logs
 - shared manifest domain models for machine metadata, item kinds, restore phases, manual tasks, and reports
@@ -16,6 +16,7 @@ The repository now covers the Phase 1 foundation plus the Phase 2 workflow basel
 - backup-on-overwrite with timestamped `.bak` files
 - Markdown report generation for preflight, export, import, and verify summaries
 - unit and integration tests for preflight, manifest, restore safety, and exporter/importer behavior
+- import bundle preview loading for manual tasks, reports, and logs before restore
 
 ## v1 Scope
 
@@ -79,6 +80,14 @@ The repository now covers the Phase 1 foundation plus the Phase 2 workflow basel
 2. Select the `MacDevEnvMover` scheme or target
 3. Build and run on macOS
 
+## Setup
+
+1. Install full Xcode if you want local `xcodebuild` and XCTest execution.
+2. Select Xcode as the active developer directory:
+   `sudo xcode-select -s /Applications/Xcode.app/Contents/Developer`
+3. Ensure Homebrew, Git, and VS Code are installed on the source or target Mac as needed for the workflows you want to run.
+4. If you want VS Code extension restore, install the `code` CLI from inside VS Code.
+
 ## Local Checks
 
 - `swift build`
@@ -104,6 +113,24 @@ With Command Line Tools only, `swift test` compiles the test targets but does no
 - `logs/*.jsonl`
 
 After import runs on the target machine, the bundle also contains `reports/import-summary.md`.
+
+## Usage Flow
+
+1. Launch the app and review the Overview tab to confirm the current machine metadata.
+2. In Export, choose a destination folder and run export to create the bundle, manifest, Brewfile, reports, and logs.
+3. Move the exported bundle to the target Mac using your preferred local transfer method.
+4. In Import, choose the bundle folder and review preflight results plus manual tasks before running import.
+5. After selecting a bundle, use Reports / Logs to preview the existing export, import, and verify summaries plus the latest log preview.
+6. Run Import to apply supported items with backups and report generation.
+7. Run Verify to regenerate `reports/verify-summary.md` against the target machine state when needed.
+
+## Known Limitations
+
+- v1 stays within Homebrew, dotfiles allowlist, Git global config, and VS Code.
+- Secret-like content is excluded by default and must be transferred manually when needed.
+- Docker, databases, JetBrains, browser sessions, Keychain, and other non-v1 categories are intentionally unsupported.
+- In a Command Line Tools-only environment, local `swift test` compiles the test bundle but does not execute XCTest cases.
+- Cross-architecture restores are surfaced with manual guidance, not automatic compatibility fixes.
 
 ## Sample Data
 

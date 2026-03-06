@@ -117,6 +117,139 @@ final class IntegrationTests: XCTestCase {
         XCTAssertTrue(result.importReport.successes.contains(where: { $0.id == "git.global.user.email" && $0.detail.contains("backup") }))
     }
 
+    func testVSCodeExporterCopiesFilesAndExtensions() throws {
+        let homeDirectory = "/Users/test"
+        let userDirectory = homeDirectory + "/Library/Application Support/Code/User"
+        let fileSystem = InMemoryFileSystem(
+            files: [
+                userDirectory + "/settings.json": Data("{\"editor.fontSize\":14}".utf8),
+                userDirectory + "/keybindings.json": Data("[]".utf8),
+                userDirectory + "/snippets/javascript.json": Data("{\"log\":{\"prefix\":\"log\"}}".utf8)
+            ],
+            directories: [
+                homeDirectory,
+                userDirectory,
+                userDirectory + "/snippets"
+            ]
+        )
+        let runner = MockCommandRunner(stubs: [
+            .init(executable: "/usr/bin/env", arguments: ["which", "code"], result: .success(.init(executable: "/usr/bin/env", arguments: ["which", "code"], exitCode: 0, stdout: "/usr/local/bin/code\n", stderr: ""))),
+            .init(executable: "/usr/bin/env", arguments: ["code", "--list-extensions", "--show-versions"], result: .success(.init(executable: "/usr/bin/env", arguments: ["code", "--list-extensions", "--show-versions"], exitCode: 0, stdout: "ms-python.python@2026.1.0\nritwickdey.liveserver\n", stderr: "")))
+        ])
+        let exporter = VSCodeExporter(
+            runner: runner,
+            fileSystem: fileSystem,
+            manualTaskEngine: ManualTaskEngine(),
+            homeDirectory: homeDirectory
+        )
+        let bundleURL = URL(fileURLWithPath: "/tmp/vscode-export-bundle")
+        let layout = BundleLayout(root: bundleURL)
+
+        let result = exporter.export(to: layout)
+        let files = fileSystem.snapshotFiles()
+
+        XCTAssertTrue(files.keys.contains(layout.vscodeSettingsURL.path))
+        XCTAssertTrue(files.keys.contains(layout.vscodeKeybindingsURL.path))
+        XCTAssertTrue(files.keys.contains(layout.vscodeSnippetsDirectory.appendingPathComponent("javascript.json").path))
+        XCTAssertEqual(result.items.filter { $0.kind == .vscodeSettings }.count, 3)
+        XCTAssertEqual(result.items.filter { $0.kind == .vscodeExtension }.count, 2)
+        XCTAssertTrue(result.successes.contains(where: { $0.id == "vscode.extensions" }))
+        XCTAssertEqual(
+            result.items.first(where: { $0.id == "vscode.extension.ritwickdey.liveserver" })?.payload["version"]?.stringValue,
+            "unknown"
+        )
+    }
+
+    func testVSCodeImportRestoresFilesAndExtensions() throws {
+        let homeDirectory = FileManager.default.homeDirectoryForCurrentUser.path
+        let bundleURL = URL(fileURLWithPath: "/tmp/vscode-import-bundle")
+        let layout = BundleLayout(root: bundleURL)
+        let fileSystem = InMemoryFileSystem(
+            files: [
+                layout.vscodeSettingsURL.path: Data("{\"files.trimTrailingWhitespace\":true}".utf8),
+                layout.vscodeSnippetsDirectory.appendingPathComponent("javascript.json").path: Data("{\"log\":{\"prefix\":\"log\"}}".utf8)
+            ],
+            directories: [
+                bundleURL.path,
+                layout.filesDirectory.path,
+                layout.vscodeDirectory.path,
+                layout.vscodeSnippetsDirectory.path,
+                homeDirectory,
+                "/Applications/Visual Studio Code.app"
+            ]
+        )
+        let manifest = Manifest(
+            exportedAt: Date(timeIntervalSince1970: 1_700_000_000),
+            machine: MachineInfo(
+                hostname: "source-host",
+                architecture: .arm64,
+                macosVersion: "15.3",
+                homeDirectory: homeDirectory,
+                homebrewPrefix: "/opt/homebrew",
+                userName: "tester"
+            ),
+            items: [
+                ManifestItem(
+                    id: "vscode.settings",
+                    kind: .vscodeSettings,
+                    title: "VS Code settings",
+                    restorePhase: .ide,
+                    source: ItemSource(path: "~/Library/Application Support/Code/User/settings.json"),
+                    payload: ["relativePath": .string("files/vscode/settings.json")],
+                    secret: false
+                ),
+                ManifestItem(
+                    id: "vscode.snippets",
+                    kind: .vscodeSettings,
+                    title: "VS Code snippets",
+                    restorePhase: .ide,
+                    source: ItemSource(path: "~/Library/Application Support/Code/User/snippets"),
+                    payload: ["relativePath": .string("files/vscode/snippets")],
+                    secret: false
+                ),
+                ManifestItem(
+                    id: "vscode.extension.ms-python.python",
+                    kind: .vscodeExtension,
+                    title: "ms-python.python",
+                    restorePhase: .ide,
+                    payload: ["identifier": .string("ms-python.python"), "version": .string("2026.1.0")],
+                    secret: false
+                )
+            ],
+            restorePlan: [
+                RestoreStep(phase: .ide, itemIds: ["vscode.settings", "vscode.snippets", "vscode.extension.ms-python.python"]),
+                RestoreStep(phase: .verify, itemIds: ["vscode.settings", "vscode.snippets", "vscode.extension.ms-python.python"])
+            ],
+            reports: ManifestReports(exportSummaryPath: "reports/export-summary.md", verifySummaryPath: "reports/verify-summary.md")
+        )
+        let store = ManifestStore(fileSystem: fileSystem)
+        try store.write(manifest, to: layout.manifestURL)
+
+        let runner = MockCommandRunner(stubs: [
+            .init(executable: "/bin/hostname", arguments: [], result: .success(.init(executable: "/bin/hostname", arguments: [], exitCode: 0, stdout: "test-host\n", stderr: ""))),
+            .init(executable: "/usr/bin/uname", arguments: ["-m"], result: .success(.init(executable: "/usr/bin/uname", arguments: ["-m"], exitCode: 0, stdout: "arm64\n", stderr: ""))),
+            .init(executable: "/usr/bin/sw_vers", arguments: ["-productVersion"], result: .success(.init(executable: "/usr/bin/sw_vers", arguments: ["-productVersion"], exitCode: 0, stdout: "15.3\n", stderr: ""))),
+            .init(executable: "/usr/bin/env", arguments: ["which", "code"], result: .success(.init(executable: "/usr/bin/env", arguments: ["which", "code"], exitCode: 0, stdout: "/usr/local/bin/code\n", stderr: ""))),
+            .init(executable: "/usr/bin/env", arguments: ["which", "code"], result: .success(.init(executable: "/usr/bin/env", arguments: ["which", "code"], exitCode: 0, stdout: "/usr/local/bin/code\n", stderr: ""))),
+            .init(executable: "/usr/bin/env", arguments: ["code", "--install-extension", "ms-python.python@2026.1.0", "--force"], result: .success(.init(executable: "/usr/bin/env", arguments: ["code", "--install-extension", "ms-python.python@2026.1.0", "--force"], exitCode: 0, stdout: "", stderr: "")))
+        ])
+
+        let coordinator = ImportCoordinator(
+            runner: runner,
+            fileSystem: fileSystem,
+            manifestStore: store
+        )
+        let result = try coordinator.import(from: bundleURL)
+        let restoredSettings = homeDirectory + "/Library/Application Support/Code/User/settings.json"
+        let restoredSnippet = homeDirectory + "/Library/Application Support/Code/User/snippets/javascript.json"
+
+        XCTAssertTrue(fileSystem.fileExists(at: URL(fileURLWithPath: restoredSettings)))
+        XCTAssertTrue(fileSystem.fileExists(at: URL(fileURLWithPath: restoredSnippet)))
+        XCTAssertTrue(result.importReport.successes.contains(where: { $0.id == "vscode.settings" }))
+        XCTAssertTrue(result.importReport.successes.contains(where: { $0.id == "vscode.snippets" }))
+        XCTAssertTrue(result.importReport.successes.contains(where: { $0.id == "vscode.extension.ms-python.python" }))
+    }
+
     func testVerifyEngineAndReportOnPartialFailure() {
         let runner = MockCommandRunner(stubs: [
             .init(executable: "/usr/bin/env", arguments: ["git", "config", "--global", "--get", "user.email"], result: .success(.init(executable: "/usr/bin/env", arguments: [], exitCode: 0, stdout: "wrong@example.com\n", stderr: "")))
@@ -153,6 +286,39 @@ final class IntegrationTests: XCTestCase {
         let markdown = MarkdownReportWriter().renderOperationReport(report)
         XCTAssertTrue(markdown.contains("## Failed"))
         XCTAssertTrue(markdown.contains("expected@example.com"))
+    }
+
+    func testVerifyEngineSucceedsForBrewAndVSCodeItems() {
+        let runner = MockCommandRunner(stubs: [
+            .init(executable: "/usr/bin/env", arguments: ["brew", "list", "--formula"], result: .success(.init(executable: "/usr/bin/env", arguments: ["brew", "list", "--formula"], exitCode: 0, stdout: "git\npython\n", stderr: ""))),
+            .init(executable: "/usr/bin/env", arguments: ["code", "--list-extensions", "--show-versions"], result: .success(.init(executable: "/usr/bin/env", arguments: ["code", "--list-extensions", "--show-versions"], exitCode: 0, stdout: "ms-python.python@2026.1.0\n", stderr: "")))
+        ])
+        let engine = VerifyEngine(fileSystem: InMemoryFileSystem(), runner: runner)
+        let items = [
+            ManifestItem(
+                id: "brew.formula.git",
+                kind: .brewFormula,
+                title: "git",
+                restorePhase: .verify,
+                payload: [:],
+                secret: false,
+                verify: VerifySpec(command: "brew list --formula", expectedValue: .string("git"))
+            ),
+            ManifestItem(
+                id: "vscode.extension.ms-python.python",
+                kind: .vscodeExtension,
+                title: "ms-python.python",
+                restorePhase: .verify,
+                payload: [:],
+                secret: false,
+                verify: VerifySpec(command: "code --list-extensions --show-versions", expectedValue: .string("ms-python.python"))
+            )
+        ]
+
+        let report = engine.verify(items: items, homeDirectory: "/Users/test")
+
+        XCTAssertEqual(report.successes.count, 2)
+        XCTAssertTrue(report.failures.isEmpty)
     }
 }
 #endif
