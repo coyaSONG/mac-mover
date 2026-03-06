@@ -67,6 +67,7 @@ final class CoreBehaviorTests: XCTestCase {
             .init(executable: "/usr/bin/env", arguments: ["which", "brew"], result: .success(.init(executable: "/usr/bin/env", arguments: ["which", "brew"], exitCode: 0, stdout: "/opt/homebrew/bin/brew\n", stderr: ""))),
             .init(executable: "/usr/bin/env", arguments: ["brew", "--prefix"], result: .success(.init(executable: "/usr/bin/env", arguments: ["brew", "--prefix"], exitCode: 0, stdout: "/opt/homebrew\n", stderr: ""))),
             .init(executable: "/usr/bin/env", arguments: ["which", "brew"], result: .success(.init(executable: "/usr/bin/env", arguments: ["which", "brew"], exitCode: 0, stdout: "/opt/homebrew/bin/brew\n", stderr: ""))),
+            .init(executable: "/usr/bin/env", arguments: ["brew", "--prefix"], result: .success(.init(executable: "/usr/bin/env", arguments: ["brew", "--prefix"], exitCode: 0, stdout: "/opt/homebrew\n", stderr: ""))),
             .init(executable: "/usr/bin/env", arguments: ["which", "git"], result: .success(.init(executable: "/usr/bin/env", arguments: ["which", "git"], exitCode: 0, stdout: "/usr/bin/git\n", stderr: ""))),
             .init(executable: "/usr/bin/env", arguments: ["which", "code"], result: .success(.init(executable: "/usr/bin/env", arguments: ["which", "code"], exitCode: 0, stdout: "/usr/local/bin/code\n", stderr: "")))
         ])
