@@ -30,6 +30,18 @@ final class IntegrationTests: XCTestCase {
         XCTAssertEqual(brewResult.items.filter { $0.kind == .brewCask }.count, 1)
         XCTAssertEqual(brewResult.items.filter { $0.kind == .brewTap }.count, 1)
         XCTAssertEqual(brewResult.items.filter { $0.kind == .brewService }.count, 1)
+        XCTAssertTrue(fs.fileExists(at: layout.brewfileURL))
+
+        let exportReport = OperationReport(
+            title: "Export Summary",
+            successes: brewResult.successes,
+            failures: brewResult.failures,
+            skipped: brewResult.skipped,
+            warnings: brewResult.warnings,
+            manualTasks: brewResult.manualTasks
+        )
+        let markdown = MarkdownReportWriter().renderOperationReport(exportReport)
+        XCTAssertTrue(markdown.contains("Brewfile"))
 
         let gitResult = GitGlobalExporter(runner: runner, manualTaskEngine: ManualTaskEngine()).export()
         XCTAssertEqual(gitResult.items.count, 2)

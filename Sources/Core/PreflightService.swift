@@ -24,6 +24,11 @@ public struct PreflightService {
     public func run(mode: PreflightMode) -> PreflightResult {
         let machine = machineCollector.collect()
         var checks: [PreflightCheck] = []
+        let brewAvailable = runner.commandExists("brew")
+        let gitAvailable = runner.commandExists("git")
+        let vscodeApp = URL(fileURLWithPath: "/Applications/Visual Studio Code.app")
+        let vscodeInstalled = fileSystem.fileExists(at: vscodeApp)
+        let codeCLIAvailable = runner.commandExists("code")
 
         checks.append(
             PreflightCheck(
@@ -56,7 +61,6 @@ public struct PreflightService {
             )
         )
 
-        let brewAvailable = runner.commandExists("brew")
         checks.append(
             PreflightCheck(
                 id: "preflight.brew",
@@ -69,21 +73,30 @@ public struct PreflightService {
 
         checks.append(
             PreflightCheck(
-                id: "preflight.git",
-                title: "git installed",
-                passed: runner.commandExists("git"),
-                detail: runner.commandExists("git") ? "git available" : "git command not found",
+                id: "preflight.brew-prefix",
+                title: "Homebrew prefix",
+                passed: brewAvailable && !machine.homebrewPrefix.isEmpty,
+                detail: brewAvailable ? machine.homebrewPrefix : "brew prefix unavailable",
                 blocking: false
             )
         )
 
-        let vscodeApp = URL(fileURLWithPath: "/Applications/Visual Studio Code.app")
+        checks.append(
+            PreflightCheck(
+                id: "preflight.git",
+                title: "git installed",
+                passed: gitAvailable,
+                detail: gitAvailable ? "git available" : "git command not found",
+                blocking: false
+            )
+        )
+
         checks.append(
             PreflightCheck(
                 id: "preflight.vscode",
                 title: "VS Code installed",
-                passed: fileSystem.fileExists(at: vscodeApp),
-                detail: fileSystem.fileExists(at: vscodeApp) ? vscodeApp.path : "VS Code.app not found",
+                passed: vscodeInstalled,
+                detail: vscodeInstalled ? vscodeApp.path : "VS Code.app not found",
                 blocking: false
             )
         )
@@ -92,8 +105,8 @@ public struct PreflightService {
             PreflightCheck(
                 id: "preflight.code-cli",
                 title: "code CLI available",
-                passed: runner.commandExists("code"),
-                detail: runner.commandExists("code") ? "code CLI available" : "code command not found",
+                passed: codeCLIAvailable,
+                detail: codeCLIAvailable ? "code CLI available" : "code command not found",
                 blocking: false
             )
         )

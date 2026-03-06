@@ -2,17 +2,20 @@
 
 Local-only macOS app for recreating a personal developer environment on a new Mac without trying to clone the entire machine.
 
-## Phase 1 Status
+## Current Status
 
-Phase 1 establishes the foundation:
+The repository now covers the Phase 1 foundation plus the Phase 2 workflow baseline:
 
 - macOS app scaffold with SwiftUI tabs for Overview, Export, Import, and Reports / Logs
 - shared manifest domain models for machine metadata, item kinds, restore phases, manual tasks, and reports
 - manifest JSON read/write support
-- Markdown report generation for preflight and operation summaries
-- unit and integration tests for core manifest and filesystem behavior
-
-The repository already contains additional exporter/importer scaffolding, but the Phase 1 baseline is the app shell, manifest contract, reporting, and tests.
+- Preflight checks for macOS version, CPU architecture, home directory, Homebrew, brew prefix, git, VS Code, `code`, and target path writeability
+- Homebrew export/import through Brewfile plus formula, cask, tap, and service manifest items
+- dotfile export/import through the allowlist in `Sources/Core/DotfileAllowlist.swift`
+- Git global config export/import
+- backup-on-overwrite with timestamped `.bak` files
+- Markdown report generation for preflight, export, import, and verify summaries
+- unit and integration tests for preflight, manifest, restore safety, and exporter/importer behavior
 
 ## v1 Scope
 
@@ -48,18 +51,18 @@ The repository already contains additional exporter/importer scaffolding, but th
 
 - `Sources/App` - SwiftUI app shell and app state
 - `Sources/SharedModels` - manifest, report, and workflow domain models
-- `Sources/Core` - manifest IO, validation, filesystem helpers, restore planning, backup naming, and utilities
+- `Sources/Core` - preflight, manifest IO, validation, filesystem helpers, restore planning, backup naming, and utilities
 - `Sources/Reporting` - Markdown report generation
 - `Sources/Exporters` - export orchestration and exporters
 - `Sources/Importers` - import orchestration and restorers
-- `Tests` - XCTest coverage for Phase 1 behavior and later integration scaffolding
+- `Tests` - XCTest coverage for current core behavior and integration scaffolding
 - `spec` - manifest schema and sample manifest
 - `docs` - architecture notes, implementation plan, and source product docs
 
 ## Documentation
 
 - `docs/architecture.md` - current architecture and data flow
-- `docs/plan.md` - Phase 1 implementation plan
+- `docs/plan.md` - current implementation plan and phase status
 - `spec/manifest.schema.json` - manifest contract
 - `spec/manifest.sample.json` - sample manifest payload
 

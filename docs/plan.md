@@ -1,25 +1,35 @@
-# Phase 1 Implementation Plan
+# Implementation Plan
 
 ## Goal
 
-Deliver the app foundation for Mac Dev Env Mover without expanding into unsupported migration categories or secret handling.
+Deliver Mac Dev Env Mover incrementally while keeping scope limited to the v1 categories and preserving local-only safety defaults.
 
-## Planned Work
+## Completed
 
-1. Keep the existing macOS app scaffold and SwiftUI shell aligned with the requested Phase 1 sections.
-2. Ensure the shared manifest models cover the schema fields needed for machine metadata, item kinds, restore phases, manual tasks, and reports.
+### Phase 1
+
+1. Keep the macOS app scaffold and SwiftUI shell aligned with the requested sections.
+2. Ensure the shared manifest models cover machine metadata, item kinds, restore phases, manual tasks, and reports.
 3. Verify manifest read/write support through `ManifestStore`.
-4. Keep Markdown report generation in `Reporting` focused on readable export, import, and verify summaries.
-5. Keep the XCTest suite in place for full Xcode environments and cover the required Phase 1 utilities.
-6. Add the missing Phase 1 docs: `docs/architecture.md` and this plan file.
-7. Refresh `README.md` so the repository documents Phase 1 scope, safety boundaries, and local verification commands.
+4. Keep Markdown reporting focused on readable export, import, and verify summaries.
+5. Maintain test coverage for core manifest and filesystem utilities.
+6. Document the repository architecture, scope, and local verification boundaries.
 
-## Out of Scope For This Phase
+### Phase 2
+
+1. Add preflight checks for machine compatibility and destination writeability.
+2. Support Homebrew export/import through Brewfile and manifest items.
+3. Support dotfile export/import through the allowlist.
+4. Support Git global config export/import.
+5. Keep backup-on-overwrite and manual task generation visible in reports.
+6. Expand tests for preflight checks, overwrite backups, Brewfile output, and report generation.
+
+## Remaining Focus
 
 - Docker, JetBrains, Keychain, browser sessions, cloud sync
 - automatic secret transfer
 - broadening support beyond the existing v1 categories
-- redesigning later-phase exporter or importer behavior
+- redesigning later-phase exporter or importer behavior before the next prompt
 
 ## Verification
 

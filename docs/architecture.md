@@ -4,15 +4,17 @@
 
 Mac Dev Env Mover is a native macOS app that exports a personal development environment into a local bundle and later imports that bundle onto another Mac. The product is intentionally narrower than full-machine migration: it captures developer tooling state, configuration, and verification artifacts.
 
-## Phase 1 Focus
+## Phase 2 Focus
 
-Phase 1 provides the foundation the later export/import workflows depend on:
+The current repository state includes the Phase 1 foundation and the Phase 2 workflow baseline:
 
 - the macOS app scaffold and SwiftUI shell
 - the shared manifest contract used across modules
 - file-backed manifest persistence
-- Markdown reporting primitives
-- core utilities and tests for restore ordering, backup naming, and path handling
+- preflight checks for machine compatibility and destination writeability
+- Homebrew, dotfile allowlist, and Git global export/import services
+- backup-on-overwrite safeguards and manual task surfacing
+- Markdown reporting primitives and core workflow tests
 
 ## Module Boundaries
 
@@ -29,7 +31,7 @@ Phase 1 provides the foundation the later export/import workflows depend on:
 
 ## Data Contract
 
-The manifest schema in `spec/manifest.schema.json` defines the intended external contract. The app mirrors that contract in `Sources/SharedModels/Manifest.swift`, and the current Phase 1 tests verify representative compatibility by decoding `spec/manifest.sample.json` plus validating core manifest invariants in Swift.
+The manifest schema in `spec/manifest.schema.json` defines the intended external contract. The app mirrors that contract in `Sources/SharedModels/Manifest.swift`, and the current tests verify representative compatibility by decoding `spec/manifest.sample.json` plus validating core manifest invariants in Swift.
 
 Important top-level fields:
 
@@ -45,11 +47,11 @@ Restore phases are ordered explicitly through `RestorePhase.order`, which allows
 
 ## Data Flow
 
-1. The app gathers machine metadata and exported items.
-2. Shared models encode that state into a manifest.
+1. `PreflightService` gathers machine metadata and checks whether export or import can proceed safely.
+2. Export services gather Homebrew, dotfile, Git, and later IDE items into manifest entries.
 3. `ManifestStore` writes the manifest JSON into the bundle.
-4. `MarkdownReportWriter` renders human-readable summaries into `reports/`.
-5. During import and verification, the same manifest models drive restore ordering and reporting.
+4. `ReportFileWriter` and `MarkdownReportWriter` render human-readable summaries into `reports/`.
+5. During import, the same manifest models drive package restore, file restore with backups, manual task surfacing, and verification.
 
 ## Safety Defaults
 
@@ -60,12 +62,13 @@ Restore phases are ordered explicitly through `RestorePhase.order`, which allows
 
 ## Testing Strategy
 
-Phase 1 tests focus on deterministic behavior:
+Current tests focus on deterministic behavior:
 
 - manifest encode/decode and manifest file round-trips
+- preflight parsing and machine/environment checks
 - restore plan ordering
-- backup filename generation
+- backup filename generation and overwrite backup behavior
 - path normalization
-- Markdown report generation
+- Brewfile and Markdown report generation
 
-Integration-style tests exist for later workflow scaffolding, but the Phase 1 baseline is the shared contract and utility layer.
+Integration-style tests cover the Phase 2 exporter/importer baseline, while later IDE-specific behavior remains for the next phase.
