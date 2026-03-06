@@ -1,66 +1,95 @@
-# Mac Dev Env Mover (v1)
+# Mac Dev Env Mover
 
-Local, single-user macOS app to export/import a personal development environment.
+Local-only macOS app for recreating a personal developer environment on a new Mac without trying to clone the entire machine.
 
-## Scope (v1)
-- Homebrew: formula, cask, tap, service
-- Dotfiles (allowlist only)
+## Phase 1 Status
+
+Phase 1 establishes the foundation:
+
+- macOS app scaffold with SwiftUI tabs for Overview, Export, Import, and Reports / Logs
+- shared manifest domain models for machine metadata, item kinds, restore phases, manual tasks, and reports
+- manifest JSON read/write support
+- Markdown report generation for preflight and operation summaries
+- unit and integration tests for core manifest and filesystem behavior
+
+The repository already contains additional exporter/importer scaffolding, but the Phase 1 baseline is the app shell, manifest contract, reporting, and tests.
+
+## v1 Scope
+
+- Homebrew formula, cask, tap, and service metadata
+- dotfiles allowlist
 - Git global config
-- VS Code: extensions, user settings, keybindings, snippets
-- Export/Import/Verify markdown reports
-- Manual task surfacing for unsupported or blocked steps
+- VS Code extensions, settings, keybindings, and snippets
+- export, import, and verify reports
 
-## Out of Scope (v1)
-- Keychain content transfer
-- Password/token/session migration
-- Automatic SSH private key transfer
-- Docker image/volume/container state
-- Local database data
-- JetBrains/Xcode/browser session migration
-- System-wide macOS clone behavior
+## v1 Non-Goals
 
-## Safety Policy
-- Secret-like paths are excluded from automatic transfer.
-- Existing files are never destructively deleted.
-- On overwrite, a timestamped `.bak` file is created first.
-- Partial failures are recorded and execution continues where possible.
+- Keychain migration
+- passwords, tokens, sessions, or cloud credentials
+- SSH private key auto-migration
+- Docker images, volumes, or containers
+- local database data
+- JetBrains support
+- Xcode settings sync
+- browser sessions or cookies
+- app license state migration
+- full system settings cloning
+- custom LaunchAgents or LaunchDaemons migration
+- cloud sync, account systems, or any server backend
 
-## Project Structure
-- `Sources/App` - SwiftUI app (Overview/Export/Import/Reports)
-- `Sources/Core` - command runner, filesystem, preflight, manifest IO, validation, restore utilities
-- `Sources/Exporters` - export orchestration and component exporters
-- `Sources/Importers` - import orchestration and apply/verify flow
-- `Sources/Reporting` - markdown report generation
-- `Sources/SharedModels` - manifest/report/preflight domain models
-- `Tests/*` - unit and integration tests (XCTest-gated)
+## Safety Rules
+
+- Secret-like content is excluded by default.
+- Existing files are never silently deleted.
+- Overwrites create timestamped `.bak` backups first.
+- Unsupported or sensitive items should surface as manual tasks in reports.
+
+## Repo Layout
+
+- `Sources/App` - SwiftUI app shell and app state
+- `Sources/SharedModels` - manifest, report, and workflow domain models
+- `Sources/Core` - manifest IO, validation, filesystem helpers, restore planning, backup naming, and utilities
+- `Sources/Reporting` - Markdown report generation
+- `Sources/Exporters` - export orchestration and exporters
+- `Sources/Importers` - import orchestration and restorers
+- `Tests` - XCTest coverage for Phase 1 behavior and later integration scaffolding
+- `spec` - manifest schema and sample manifest
+- `docs` - architecture notes, implementation plan, and source product docs
+
+## Documentation
+
+- `docs/architecture.md` - current architecture and data flow
+- `docs/plan.md` - Phase 1 implementation plan
+- `spec/manifest.schema.json` - manifest contract
+- `spec/manifest.sample.json` - sample manifest payload
 
 ## Build and Run
+
 ### SwiftPM
+
 1. `swift build`
 2. `swift run MacDevEnvMover`
 
-### Xcode Project
+### Xcode
+
 1. Open `MacDevEnvMover.xcodeproj`
-2. Select `MacDevEnvMover` target
-3. Build/Run
+2. Select the `MacDevEnvMover` scheme or target
+3. Build and run on macOS
 
-## Automation
-- `make build` - `swift build`
-- `make test` - `swift test`
-- `make ci` - Swift build/test + xcodebuild checks
-- `./scripts/ci.sh` - same as CI local runner
-- `./scripts/xcodebuild-check.sh` - app/test target build with `xcodebuild`
+## Local Checks
 
-`xcodebuild` checks require full Xcode, not only Command Line Tools.
-If full Xcode is installed, set:
+- `swift build`
+- `swift test`
+- `./scripts/xcodebuild-check.sh`
+
+With Command Line Tools only, `swift test` compiles the test targets but does not execute the XCTest cases. Full Xcode is required to run the test suite.
+
+`xcodebuild` requires full Xcode. If the machine is using Command Line Tools only, select full Xcode first:
+
 `sudo xcode-select -s /Applications/Xcode.app/Contents/Developer`
 
-## GitHub Actions
-- Workflow: `.github/workflows/macos-ci.yml`
-- Runs on `macos-14`
-- Executes `swift build`, `swift test`, and `scripts/xcodebuild-check.sh`
+## Export Bundle Shape
 
-## Export Bundle Layout
 - `manifest.json`
 - `Brewfile`
 - `files/dotfiles/...`
@@ -68,22 +97,11 @@ If full Xcode is installed, set:
 - `files/vscode/keybindings.json`
 - `files/vscode/snippets/...`
 - `reports/export-summary.md`
-- `reports/import-summary.md` (after import)
-- `reports/verify-summary.md`
+- `reports/verify-summary.md` (placeholder until import/verify runs on the target machine)
 - `logs/*.jsonl`
 
-## Sample Bundle
-- `SampleExportBundle/`
+After import runs on the target machine, the bundle also contains `reports/import-summary.md`.
 
-## Test Notes
-Test files are included for:
-- manifest encode/decode
-- schema compatibility
-- restore plan ordering
-- dotfile backup naming
-- path normalization
-- manual task generation
-- report generation
-- parser/integration behavior via mock command runner
+## Sample Data
 
-This environment uses Command Line Tools, so runtime test execution may be limited. In full Xcode environments, tests are available under the test target.
+- `SampleExportBundle/` contains a sample export bundle

@@ -26,6 +26,7 @@ final class ManifestTests: XCTestCase {
             .deletingLastPathComponent()
             .deletingLastPathComponent()
             .deletingLastPathComponent()
+            .appendingPathComponent("spec")
             .appendingPathComponent("manifest.sample.json")
 
         let data = try Data(contentsOf: sampleURL)
@@ -43,6 +44,18 @@ final class ManifestTests: XCTestCase {
 
         let validator = ManifestValidator()
         XCTAssertThrowsError(try validator.validate(manifest))
+    }
+
+    func testManifestStoreReadWriteRoundTrip() throws {
+        let manifest = makeManifest()
+        let fileSystem = InMemoryFileSystem()
+        let store = ManifestStore(fileSystem: fileSystem)
+        let manifestURL = URL(fileURLWithPath: "/tmp/export/manifest.json")
+
+        try store.write(manifest, to: manifestURL)
+        let decoded = try store.read(from: manifestURL)
+
+        XCTAssertEqual(decoded, manifest)
     }
 
     private func makeManifest() -> Manifest {
