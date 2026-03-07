@@ -23,7 +23,7 @@
 		49545362F3F9CE6DA257E5F9 /* PreflightService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 841658E3B56E7D80FFB58BE2 /* PreflightService.swift */; };
 		4C1E7063B90FEFAAAE8785D8 /* Exporters.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1626C1F7A3AC61D97D68460E /* Exporters.framework */; };
 		512C751AD0A1DDB31A51C54E /* CoreBehaviorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59AA12AE32C95C358661BE69 /* CoreBehaviorTests.swift */; };
-		520C2FB32B4FDB18314C6C5C /* MacDevEnvMoverApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A777B0C703BD2A3E9300DBF7 /* MacDevEnvMoverApp.swift */; };
+		520C2FB32B4FDB18314C6C5C /* MacMoverApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A777B0C703BD2A3E9300DBF7 /* MacMoverApp.swift */; };
 		589301B262E9752B37F05512 /* PathUtilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED488B7FAA7B48672C2C842D /* PathUtilities.swift */; };
 		5F4222D41764BC5270523EE0 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF2EE3A2FBD51810F9530372 /* AppState.swift */; };
 		6255135D3D7FB70FE8CA1A3D /* DotfileAllowlist.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDF2709F0D7B4B306F6BB4A2 /* DotfileAllowlist.swift */; };
@@ -127,7 +127,7 @@
 			containerPortal = C3EDCA9970B376551F95A7C4 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 8E957750C5781C5055C8F689;
-			remoteInfo = MacDevEnvMover;
+			remoteInfo = MacMover;
 		};
 		B3D55B8A714A6859EED77162 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -189,7 +189,7 @@
 		423A4B5E289C640F53E7EDA5 /* RestorePlanBuilder.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = RestorePlanBuilder.swift; path = Sources/Core/RestorePlanBuilder.swift; sourceTree = "<group>"; };
 		4696EF6F85BB1232714D6F77 /* ManualTaskEngine.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ManualTaskEngine.swift; path = Sources/Core/ManualTaskEngine.swift; sourceTree = "<group>"; };
 		4E01D9EEE3154B3844C5C47A /* ContentView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ContentView.swift; path = Sources/App/ContentView.swift; sourceTree = "<group>"; };
-		57550BFFF84D03EB56EBF8C2 /* MacDevEnvMoverTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MacDevEnvMoverTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		57550BFFF84D03EB56EBF8C2 /* MacMoverTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MacMoverTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		59AA12AE32C95C358661BE69 /* CoreBehaviorTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CoreBehaviorTests.swift; path = Tests/CoreTests/CoreBehaviorTests.swift; sourceTree = "<group>"; };
 		5BD3A67AF2553A783ECC89CC /* ErrorTypes.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ErrorTypes.swift; path = Sources/Core/ErrorTypes.swift; sourceTree = "<group>"; };
 		68FD0401C39E630AA4207138 /* Core.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Core.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -203,9 +203,9 @@
 		96475BDEF3CDA5BAB6C7E878 /* ImportCoordinator.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ImportCoordinator.swift; path = Sources/Importers/ImportCoordinator.swift; sourceTree = "<group>"; };
 		964C30B1391F0F42762024CC /* ReportFileWriter.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ReportFileWriter.swift; path = Sources/Reporting/ReportFileWriter.swift; sourceTree = "<group>"; };
 		98D74C743EC00497608F6461 /* IntegrationTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = IntegrationTests.swift; path = Tests/ExporterImporterTests/IntegrationTests.swift; sourceTree = "<group>"; };
-		A777B0C703BD2A3E9300DBF7 /* MacDevEnvMoverApp.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MacDevEnvMoverApp.swift; path = Sources/App/MacDevEnvMoverApp.swift; sourceTree = "<group>"; };
+		A777B0C703BD2A3E9300DBF7 /* MacMoverApp.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MacMoverApp.swift; path = Sources/App/MacMoverApp.swift; sourceTree = "<group>"; };
 		A7F5D83EDCA3664B70DB9F01 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.0.sdk/System/Library/Frameworks/Cocoa.framework; sourceTree = DEVELOPER_DIR; };
-		B81652F8D8AD0F3E0497F18D /* MacDevEnvMover.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MacDevEnvMover.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B81652F8D8AD0F3E0497F18D /* MacMover.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MacMover.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B96A25585480C5947F8AFE78 /* JSONValue.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = JSONValue.swift; path = Sources/SharedModels/JSONValue.swift; sourceTree = "<group>"; };
 		BC298FE2E35A71D4619954B0 /* BundleLayout.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = BundleLayout.swift; path = Sources/Core/BundleLayout.swift; sourceTree = "<group>"; };
 		BDF0975A6D261F85AC907C95 /* App-Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; name = "App-Info.plist"; path = "Xcode/App-Info.plist"; sourceTree = "<group>"; };
@@ -332,8 +332,8 @@
 				FB2D29FC19115DED0315CDEA /* Reporting.framework */,
 				1626C1F7A3AC61D97D68460E /* Exporters.framework */,
 				337042BAF879C14F93C51277 /* Importers.framework */,
-				B81652F8D8AD0F3E0497F18D /* MacDevEnvMover.app */,
-				57550BFFF84D03EB56EBF8C2 /* MacDevEnvMoverTests.xctest */,
+				B81652F8D8AD0F3E0497F18D /* MacMover.app */,
+				57550BFFF84D03EB56EBF8C2 /* MacMoverTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -386,7 +386,7 @@
 			children = (
 				BF2EE3A2FBD51810F9530372 /* AppState.swift */,
 				4E01D9EEE3154B3844C5C47A /* ContentView.swift */,
-				A777B0C703BD2A3E9300DBF7 /* MacDevEnvMoverApp.swift */,
+				A777B0C703BD2A3E9300DBF7 /* MacMoverApp.swift */,
 			);
 			name = App;
 			sourceTree = "<group>";
@@ -554,9 +554,9 @@
 			productReference = 1626C1F7A3AC61D97D68460E /* Exporters.framework */;
 			productType = "com.apple.product-type.framework";
 		};
-		8E957750C5781C5055C8F689 /* MacDevEnvMover */ = {
+		8E957750C5781C5055C8F689 /* MacMover */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = CE424F4EDBD6DC9748568C2E /* Build configuration list for PBXNativeTarget "MacDevEnvMover" */;
+			buildConfigurationList = CE424F4EDBD6DC9748568C2E /* Build configuration list for PBXNativeTarget "MacMover" */;
 			buildPhases = (
 				7EBB0FD8B19BA36293414847 /* Sources */,
 				771748F0E6FB068BCC4F1541 /* Frameworks */,
@@ -571,9 +571,9 @@
 				029D899303E99CC208E403DA /* PBXTargetDependency */,
 				654EC8CB3F6B03A12045BF2D /* PBXTargetDependency */,
 			);
-			name = MacDevEnvMover;
-			productName = MacDevEnvMover;
-			productReference = B81652F8D8AD0F3E0497F18D /* MacDevEnvMover.app */;
+			name = MacMover;
+			productName = MacMover;
+			productReference = B81652F8D8AD0F3E0497F18D /* MacMover.app */;
 			productType = "com.apple.product-type.application";
 		};
 		9A3E2A4D4CF593F8325F7B87 /* Reporting */ = {
@@ -596,9 +596,9 @@
 			productReference = FB2D29FC19115DED0315CDEA /* Reporting.framework */;
 			productType = "com.apple.product-type.framework";
 		};
-		AF6C3B413BF1D7E11B6D4ABE /* MacDevEnvMoverTests */ = {
+		AF6C3B413BF1D7E11B6D4ABE /* MacMoverTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 3CF98DDB9724630D2C4FE305 /* Build configuration list for PBXNativeTarget "MacDevEnvMoverTests" */;
+			buildConfigurationList = 3CF98DDB9724630D2C4FE305 /* Build configuration list for PBXNativeTarget "MacMoverTests" */;
 			buildPhases = (
 				83522ABCE8C1B8A0B26789F8 /* Sources */,
 				9E779C5B3064651B1B97808C /* Frameworks */,
@@ -609,9 +609,9 @@
 			dependencies = (
 				F706D6E983F53F2E448F2874 /* PBXTargetDependency */,
 			);
-			name = MacDevEnvMoverTests;
-			productName = MacDevEnvMoverTests;
-			productReference = 57550BFFF84D03EB56EBF8C2 /* MacDevEnvMoverTests.xctest */;
+			name = MacMoverTests;
+			productName = MacMoverTests;
+			productReference = 57550BFFF84D03EB56EBF8C2 /* MacMoverTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
 		F8C914B1007883F6CAE50574 /* SharedModels */ = {
@@ -641,7 +641,7 @@
 				LastSwiftUpdateCheck = 1600;
 				LastUpgradeCheck = 1600;
 			};
-			buildConfigurationList = B5CC1C0F2BC2C0A52F72480E /* Build configuration list for PBXProject "MacDevEnvMover" */;
+			buildConfigurationList = B5CC1C0F2BC2C0A52F72480E /* Build configuration list for PBXProject "MacMover" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -661,8 +661,8 @@
 				9A3E2A4D4CF593F8325F7B87 /* Reporting */,
 				7C51E7BC32653006D17616EA /* Exporters */,
 				0FA5B1ADC4BE452E517267D8 /* Importers */,
-				8E957750C5781C5055C8F689 /* MacDevEnvMover */,
-				AF6C3B413BF1D7E11B6D4ABE /* MacDevEnvMoverTests */,
+				8E957750C5781C5055C8F689 /* MacMover */,
+				AF6C3B413BF1D7E11B6D4ABE /* MacMoverTests */,
 			);
 		};
 /* End PBXProject section */
@@ -726,7 +726,7 @@
 			files = (
 				5F4222D41764BC5270523EE0 /* AppState.swift in Sources */,
 				96CFB959F9D0D3B86B39B601 /* ContentView.swift in Sources */,
-				520C2FB32B4FDB18314C6C5C /* MacDevEnvMoverApp.swift in Sources */,
+				520C2FB32B4FDB18314C6C5C /* MacMoverApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -897,8 +897,8 @@
 		};
 		F706D6E983F53F2E448F2874 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			name = MacDevEnvMover;
-			target = 8E957750C5781C5055C8F689 /* MacDevEnvMover */;
+			name = MacMover;
+			target = 8E957750C5781C5055C8F689 /* MacMover */;
 			targetProxy = 9FF3F2EDA931554580D57BA3 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -1329,7 +1329,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		3CF98DDB9724630D2C4FE305 /* Build configuration list for PBXNativeTarget "MacDevEnvMoverTests" */ = {
+		3CF98DDB9724630D2C4FE305 /* Build configuration list for PBXNativeTarget "MacMoverTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				E25DBAF46AF5511CED64CB89 /* Release */,
@@ -1374,7 +1374,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		B5CC1C0F2BC2C0A52F72480E /* Build configuration list for PBXProject "MacDevEnvMover" */ = {
+		B5CC1C0F2BC2C0A52F72480E /* Build configuration list for PBXProject "MacMover" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				1B7D0E564B6165D19F72AEC0 /* Debug */,
@@ -1383,7 +1383,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		CE424F4EDBD6DC9748568C2E /* Build configuration list for PBXNativeTarget "MacDevEnvMover" */ = {
+		CE424F4EDBD6DC9748568C2E /* Build configuration list for PBXNativeTarget "MacMover" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				47BC61B32B6CFB9C7A7401A2 /* Release */,

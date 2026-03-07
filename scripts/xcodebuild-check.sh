@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-PROJECT="MacDevEnvMover.xcodeproj"
+PROJECT="MacMover.xcodeproj"
 CONFIGURATION="Debug"
 SDK="macosx"
 REQUIRE_XCODEBUILD="${REQUIRE_XCODEBUILD:-0}"
@@ -36,9 +36,9 @@ COMMON_FLAGS=(
 )
 
 echo "[xcodebuild] Build app target"
-xcodebuild "${COMMON_FLAGS[@]}" -target MacDevEnvMover build
+xcodebuild "${COMMON_FLAGS[@]}" -target MacMover build
 
 echo "[xcodebuild] Build test target"
-xcodebuild "${COMMON_FLAGS[@]}" -target MacDevEnvMoverTests build
+xcodebuild "${COMMON_FLAGS[@]}" -target MacMoverTests build
 
 echo "xcodebuild checks completed."

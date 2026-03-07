@@ -72,12 +72,12 @@ The repository now covers the Phase 1 foundation through the Phase 3 v1 workflow
 ### SwiftPM
 
 1. `swift build`
-2. `swift run MacDevEnvMover`
+2. `swift run MacMover`
 
 ### Xcode
 
-1. Open `MacDevEnvMover.xcodeproj`
-2. Select the `MacDevEnvMover` scheme or target
+1. Open `MacMover.xcodeproj`
+2. Select the `MacMover` scheme or target
 3. Build and run on macOS
 
 ## Setup

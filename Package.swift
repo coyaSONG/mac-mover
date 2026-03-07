@@ -2,10 +2,10 @@
 import PackageDescription
 
 let package = Package(
-    name: "MacDevEnvMover",
+    name: "MacMover",
     platforms: [.macOS(.v13)],
     products: [
-        .executable(name: "MacDevEnvMover", targets: ["App"]),
+        .executable(name: "MacMover", targets: ["App"]),
         .library(name: "SharedModels", targets: ["SharedModels"]),
         .library(name: "Core", targets: ["Core"]),
         .library(name: "Reporting", targets: ["Reporting"]),

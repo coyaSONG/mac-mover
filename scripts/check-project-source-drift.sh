@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-PROJECT_FILE="MacDevEnvMover.xcodeproj/project.pbxproj"
+PROJECT_FILE="MacMover.xcodeproj/project.pbxproj"
 
 if [[ ! -f "${PROJECT_FILE}" ]]; then
   echo "Missing project file: ${PROJECT_FILE}"

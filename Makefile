@@ -7,7 +7,7 @@ test:
 	swift test
 
 run:
-	swift run MacDevEnvMover
+	swift run MacMover
 
 ci: build test ci-xcode
 
