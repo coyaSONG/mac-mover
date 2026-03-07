@@ -24,6 +24,27 @@ struct RepoWorkspaceDetectorTests {
     }
 
     @Test
+    func detectsVSCodeWorkspaceFromKeybindingsAndSnippetsWithoutSettings() throws {
+        let root = URL(fileURLWithPath: "/tmp/dev-env")
+        let fileSystem = InMemoryFileSystem(
+            files: [
+                root.appendingPathComponent("vscode/keybindings.json").path: Data("[{\"key\":\"cmd+s\"}]\n".utf8),
+                root.appendingPathComponent(".vscode/snippets/javascript.json").path: Data("{\"log\":{}}\n".utf8)
+            ],
+            directories: [
+                root.path,
+                root.appendingPathComponent("vscode").path,
+                root.appendingPathComponent(".vscode").path,
+                root.appendingPathComponent(".vscode/snippets").path
+            ]
+        )
+
+        let workspace = try RepoWorkspaceDetector(fileSystem: fileSystem).detect(at: root)
+
+        #expect(workspace.detectedTools.contains(.vscode))
+    }
+
+    @Test
     func loadsBrewfileAndAllowlistedDotfilesIntoSnapshot() throws {
         let root = URL(fileURLWithPath: "/tmp/dev-env")
         let fileSystem = InMemoryFileSystem(

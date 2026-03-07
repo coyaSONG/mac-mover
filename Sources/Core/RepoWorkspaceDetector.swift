@@ -37,8 +37,7 @@ public struct RepoWorkspaceDetector: Sendable {
             tools.append(.asdf)
         }
 
-        if fileSystem.fileExists(at: root.appendingPathComponent(".vscode/settings.json"))
-            || fileSystem.fileExists(at: root.appendingPathComponent("vscode/settings.json")) {
+        if containsVSCodeFiles(at: root) {
             tools.append(.vscode)
         }
 
@@ -56,6 +55,15 @@ public struct RepoWorkspaceDetector: Sendable {
         dotfileAllowlist.paths.contains { path in
             let relativePath = PathNormalizer.normalizedDotfileRelativePath(path)
             return fileSystem.fileExists(at: root.appendingPathComponent(relativePath))
+        }
+    }
+
+    private func containsVSCodeFiles(at root: URL) -> Bool {
+        [".vscode", "vscode"].contains { directory in
+            let baseURL = root.appendingPathComponent(directory)
+            return fileSystem.fileExists(at: baseURL.appendingPathComponent("settings.json"))
+                || fileSystem.fileExists(at: baseURL.appendingPathComponent("keybindings.json"))
+                || fileSystem.fileExists(at: baseURL.appendingPathComponent("snippets"))
         }
     }
 }
