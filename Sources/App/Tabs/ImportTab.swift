@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ImportTab: View {
     @EnvironmentObject private var appState: AppState
+    @State private var appeared = false
 
     var body: some View {
         ScrollView {
@@ -35,6 +36,8 @@ struct ImportTab: View {
                         ProgressOverlay(message: appState.statusMessage)
                     }
                 }
+                .opacity(appeared ? 1 : 0)
+                .offset(y: appeared ? 0 : 10)
 
                 if !appState.preflightChecks.isEmpty {
                     CardView(title: "Preflight Results", icon: "checklist") {
@@ -44,6 +47,8 @@ struct ImportTab: View {
                             }
                         }
                     }
+                    .opacity(appeared ? 1 : 0)
+                    .offset(y: appeared ? 0 : 10)
                 }
 
                 if !appState.manualTasks.isEmpty {
@@ -54,9 +59,16 @@ struct ImportTab: View {
                             }
                         }
                     }
+                    .opacity(appeared ? 1 : 0)
+                    .offset(y: appeared ? 0 : 10)
                 }
             }
             .padding(.vertical, 8)
+            .onAppear {
+                withAnimation(.easeOut(duration: 0.4)) {
+                    appeared = true
+                }
+            }
         }
     }
 }

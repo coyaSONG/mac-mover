@@ -16,9 +16,16 @@ struct StatusBadge: View {
 
     var body: some View {
         HStack(alignment: .top, spacing: 8) {
-            Image(systemName: icon)
-                .foregroundStyle(color)
-                .imageScale(.medium)
+            if #available(macOS 14.0, *) {
+                Image(systemName: icon)
+                    .foregroundStyle(color)
+                    .imageScale(.medium)
+                    .symbolEffect(.bounce, value: check.passed)
+            } else {
+                Image(systemName: icon)
+                    .foregroundStyle(color)
+                    .imageScale(.medium)
+            }
             VStack(alignment: .leading, spacing: 2) {
                 Text(check.title)
                     .font(.body)

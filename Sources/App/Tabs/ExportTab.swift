@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ExportTab: View {
     @EnvironmentObject private var appState: AppState
+    @State private var appeared = false
 
     var body: some View {
         ScrollView {
@@ -25,6 +26,8 @@ struct ExportTab: View {
                         ProgressOverlay(message: appState.statusMessage)
                     }
                 }
+                .opacity(appeared ? 1 : 0)
+                .offset(y: appeared ? 0 : 10)
 
                 if appState.exportSummary != "No export executed" {
                     CardView(title: "Summary", icon: "doc.text") {
@@ -36,9 +39,16 @@ struct ExportTab: View {
                         }
                         .frame(maxHeight: 300)
                     }
+                    .opacity(appeared ? 1 : 0)
+                    .offset(y: appeared ? 0 : 10)
                 }
             }
             .padding(.vertical, 8)
+            .onAppear {
+                withAnimation(.easeOut(duration: 0.4)) {
+                    appeared = true
+                }
+            }
         }
     }
 }
