@@ -52,4 +52,65 @@ struct RepoWorkspaceDetectorTests {
         #expect(snapshot.items.contains(where: { $0.category == .dotfiles && $0.identifier == "~/.zshrc" }))
         #expect(snapshot.items.contains(where: { $0.category == .dotfiles && $0.identifier == "~/.config/starship.toml" }))
     }
+
+    @Test
+    func loadsMiseAndToolVersionsIntoSnapshot() throws {
+        let root = URL(fileURLWithPath: "/tmp/dev-env")
+        let fileSystem = InMemoryFileSystem(
+            files: [
+                root.appendingPathComponent("mise.toml").path: Data("""
+                [tools]
+                node = "22.1.0"
+                python = "3.12"
+                """.utf8),
+                root.appendingPathComponent(".tool-versions").path: Data("""
+                ruby 3.3.1
+                terraform 1.10.5
+                """.utf8)
+            ],
+            directories: [root.path]
+        )
+        let workspace = ConnectedWorkspace(
+            rootPath: root.path,
+            detectedTools: [.mise, .asdf]
+        )
+
+        let snapshot = try RepoSnapshotLoader(fileSystem: fileSystem).load(from: workspace)
+
+        #expect(snapshot.items.contains(where: { $0.category == .toolVersions && $0.identifier == "node" && $0.value == .string("22.1.0") }))
+        #expect(snapshot.items.contains(where: { $0.category == .toolVersions && $0.identifier == "python" && $0.value == .string("3.12") }))
+        #expect(snapshot.items.contains(where: { $0.category == .toolVersions && $0.identifier == "ruby" && $0.value == .string("3.3.1") }))
+        #expect(snapshot.items.contains(where: { $0.category == .toolVersions && $0.identifier == "terraform" && $0.value == .string("1.10.5") }))
+    }
+
+    @Test
+    func loadsVSCodeRepoFilesFromBothDirectoryConventions() throws {
+        let root = URL(fileURLWithPath: "/tmp/dev-env")
+        let fileSystem = InMemoryFileSystem(
+            files: [
+                root.appendingPathComponent(".vscode/settings.json").path: Data("{\"editor.fontSize\": 14}\n".utf8),
+                root.appendingPathComponent("vscode/keybindings.json").path: Data("[{\"key\":\"cmd+s\"}]\n".utf8),
+                root.appendingPathComponent(".vscode/snippets/javascript.json").path: Data("{\"log\":{}}\n".utf8),
+                root.appendingPathComponent("vscode/snippets/python.json").path: Data("{\"print\":{}}\n".utf8)
+            ],
+            directories: [
+                root.path,
+                root.appendingPathComponent(".vscode").path,
+                root.appendingPathComponent(".vscode/snippets").path,
+                root.appendingPathComponent("vscode").path,
+                root.appendingPathComponent("vscode/snippets").path
+            ]
+        )
+        let workspace = ConnectedWorkspace(
+            rootPath: root.path,
+            detectedTools: [.vscode]
+        )
+
+        let snapshot = try RepoSnapshotLoader(fileSystem: fileSystem).load(from: workspace)
+
+        #expect(snapshot.items.contains(where: { $0.category == .vscode && $0.identifier == "settings.json" && $0.details["relativePath"] == .string(".vscode/settings.json") }))
+        #expect(snapshot.items.contains(where: { $0.category == .vscode && $0.identifier == "keybindings.json" && $0.details["relativePath"] == .string("vscode/keybindings.json") }))
+        #expect(snapshot.items.contains(where: { $0.category == .vscode && $0.identifier == "javascript.json" && $0.details["relativePath"] == .string(".vscode/snippets/javascript.json") }))
+        #expect(snapshot.items.contains(where: { $0.category == .vscode && $0.identifier == "python.json" && $0.details["relativePath"] == .string("vscode/snippets/python.json") }))
+    }
 }
