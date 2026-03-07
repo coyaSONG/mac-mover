@@ -19,6 +19,7 @@ final class AppState: ObservableObject {
     @Published var preflightChecks: [PreflightCheck] = []
     @Published var logsPreview: String = "No logs"
     @Published var statusMessage: String = "Idle"
+    @Published var isRunning: Bool = false
 
     @Published var lastExportBundleURL: URL?
     @Published var lastImportBundleURL: URL?
@@ -89,6 +90,8 @@ final class AppState: ObservableObject {
         statusMessage = "Export running..."
 
         Task {
+            isRunning = true
+            defer { isRunning = false }
             do {
                 let result = try exportCoordinator.export(to: destination)
                 lastExportBundleURL = result.bundleURL
@@ -140,6 +143,8 @@ final class AppState: ObservableObject {
         statusMessage = "Import running..."
 
         Task {
+            isRunning = true
+            defer { isRunning = false }
             do {
                 let result = try importCoordinator.import(from: source)
                 lastImportBundleURL = result.bundleURL
@@ -165,6 +170,8 @@ final class AppState: ObservableObject {
         statusMessage = "Verify running..."
 
         Task {
+            isRunning = true
+            defer { isRunning = false }
             do {
                 let manifest = try bundleValidator.validateBundle(at: source)
                 let preflight = preflightService.run(mode: .import(bundle: source))
