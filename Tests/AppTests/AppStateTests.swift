@@ -6,6 +6,13 @@ import Testing
 
 @Test
 @MainActor
+func isRunningDefaultsToFalse() {
+    let appState = AppState(machineSummaryProvider: { "test" })
+    #expect(appState.isRunning == false)
+}
+
+@Test
+@MainActor
 func runImportPreflightLoadsPreviewState() throws {
     let bundleURL = URL(fileURLWithPath: "/tmp/import-bundle")
     let manifest = Manifest(
