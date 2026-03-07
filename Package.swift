@@ -38,7 +38,16 @@ let package = Package(
         .executableTarget(
             name: "App",
             dependencies: ["Core", "SharedModels", "Exporters", "Importers", "Reporting"],
-            path: "Sources/App"
+            path: "Sources/App",
+            exclude: ["Info.plist"],
+            linkerSettings: [
+                .unsafeFlags([
+                    "-Xlinker", "-sectcreate",
+                    "-Xlinker", "__TEXT",
+                    "-Xlinker", "__info_plist",
+                    "-Xlinker", "Sources/App/Info.plist"
+                ])
+            ]
         ),
         .testTarget(
             name: "CoreTests",
