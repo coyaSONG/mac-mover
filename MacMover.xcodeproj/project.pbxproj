@@ -69,6 +69,13 @@
 		CD4E5F6A7B8C9D0E1F2A3B4C /* ManualTaskRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD4E5F6A7B8C9D0E1F2A3B4C /* ManualTaskRow.swift */; };
 		CE5F6A7B8C9D0E1F2A3B4C5D /* ProgressOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE5F6A7B8C9D0E1F2A3B4C5D /* ProgressOverlay.swift */; };
 		CF6A7B8C9D0E1F2A3B4C5D6E /* OverviewTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF6A7B8C9D0E1F2A3B4C5D6E /* OverviewTab.swift */; };
+		C11E2F3A4B5C6D7E8F9A0B1C /* RepoWorkspaceDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = D11E2F3A4B5C6D7E8F9A0B1C /* RepoWorkspaceDetector.swift */; };
+		C22F3A4B5C6D7E8F9A0B1C2D /* RepoSnapshotLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = D22F3A4B5C6D7E8F9A0B1C2D /* RepoSnapshotLoader.swift */; };
+		C33A4B5C6D7E8F9A0B1C2D3E /* EnvironmentScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = D33A4B5C6D7E8F9A0B1C2D3E /* EnvironmentScanner.swift */; };
+		C44B5C6D7E8F9A0B1C2D3E4F /* DriftEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = D44B5C6D7E8F9A0B1C2D3E4F /* DriftEngine.swift */; };
+		C55C6D7E8F9A0B1C2D3E4F5A /* WorkspaceApplyCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D55C6D7E8F9A0B1C2D3E4F5A /* WorkspaceApplyCoordinator.swift */; };
+		C66D7E8F9A0B1C2D3E4F5A6B /* WorkspacePromoteCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D66D7E8F9A0B1C2D3E4F5A6B /* WorkspacePromoteCoordinator.swift */; };
+		C77E8F9A0B1C2D3E4F5A6B7C /* WorkspaceModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = D77E8F9A0B1C2D3E4F5A6B7C /* WorkspaceModels.swift */; };
 		DA7B8C9D0E1F2A3B4C5D6E7F /* ExportTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA7B8C9D0E1F2A3B4C5D6E7F /* ExportTab.swift */; };
 		DB8C9D0E1F2A3B4C5D6E7F8A /* ImportTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB8C9D0E1F2A3B4C5D6E7F8A /* ImportTab.swift */; };
 		DC9D0E1F2A3B4C5D6E7F8A9B /* ReportsTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC9D0E1F2A3B4C5D6E7F8A9B /* ReportsTab.swift */; };
@@ -244,6 +251,13 @@
 		BC9D0E1F2A3B4C5D6E7F8A9B /* ReportsTab.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ReportsTab.swift; path = Sources/App/Tabs/ReportsTab.swift; sourceTree = "<group>"; };
 		BD0E1F2A3B4C5D6E7F8A9B0C /* RepoTab.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = RepoTab.swift; path = Sources/App/Tabs/RepoTab.swift; sourceTree = "<group>"; };
 		BE1F2A3B4C5D6E7F8A9B0C1D /* DriftTab.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = DriftTab.swift; path = Sources/App/Tabs/DriftTab.swift; sourceTree = "<group>"; };
+		D11E2F3A4B5C6D7E8F9A0B1C /* RepoWorkspaceDetector.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = RepoWorkspaceDetector.swift; path = Sources/Core/RepoWorkspaceDetector.swift; sourceTree = "<group>"; };
+		D22F3A4B5C6D7E8F9A0B1C2D /* RepoSnapshotLoader.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = RepoSnapshotLoader.swift; path = Sources/Core/RepoSnapshotLoader.swift; sourceTree = "<group>"; };
+		D33A4B5C6D7E8F9A0B1C2D3E /* EnvironmentScanner.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = EnvironmentScanner.swift; path = Sources/Core/EnvironmentScanner.swift; sourceTree = "<group>"; };
+		D44B5C6D7E8F9A0B1C2D3E4F /* DriftEngine.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = DriftEngine.swift; path = Sources/Core/DriftEngine.swift; sourceTree = "<group>"; };
+		D55C6D7E8F9A0B1C2D3E4F5A /* WorkspaceApplyCoordinator.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = WorkspaceApplyCoordinator.swift; path = Sources/Importers/WorkspaceApplyCoordinator.swift; sourceTree = "<group>"; };
+		D66D7E8F9A0B1C2D3E4F5A6B /* WorkspacePromoteCoordinator.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = WorkspacePromoteCoordinator.swift; path = Sources/Exporters/WorkspacePromoteCoordinator.swift; sourceTree = "<group>"; };
+		D77E8F9A0B1C2D3E4F5A6B7C /* WorkspaceModels.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = WorkspaceModels.swift; path = Sources/SharedModels/WorkspaceModels.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -367,7 +381,9 @@
 				2714E55F0C4D4E5A9B712AA1 /* BundlePreviewService.swift */,
 				6DA93D4CE41F438F0F86A298 /* BundleValidator.swift */,
 				3BA9A41AC2983E2A5412DBF1 /* CommandRunner.swift */,
+				D44B5C6D7E8F9A0B1C2D3E4F /* DriftEngine.swift */,
 				CDF2709F0D7B4B306F6BB4A2 /* DotfileAllowlist.swift */,
+				D33A4B5C6D7E8F9A0B1C2D3E /* EnvironmentScanner.swift */,
 				5BD3A67AF2553A783ECC89CC /* ErrorTypes.swift */,
 				D6A0D57E694E2E59BBD5D2D6 /* FileRestorer.swift */,
 				DDA76895D0245A6E94FA58EB /* FileSystem.swift */,
@@ -378,6 +394,8 @@
 				4696EF6F85BB1232714D6F77 /* ManualTaskEngine.swift */,
 				ED488B7FAA7B48672C2C842D /* PathUtilities.swift */,
 				841658E3B56E7D80FFB58BE2 /* PreflightService.swift */,
+				D22F3A4B5C6D7E8F9A0B1C2D /* RepoSnapshotLoader.swift */,
+				D11E2F3A4B5C6D7E8F9A0B1C /* RepoWorkspaceDetector.swift */,
 				423A4B5E289C640F53E7EDA5 /* RestorePlanBuilder.swift */,
 				14B04BFE56F094D323DEB862 /* SecretPolicy.swift */,
 				3C9073EBC58EC8CDA06E9242 /* StructuredLogger.swift */,
@@ -399,6 +417,7 @@
 			children = (
 				6DB64AC235507CDADB8FCA7B /* ComponentImportResult.swift */,
 				96475BDEF3CDA5BAB6C7E878 /* ImportCoordinator.swift */,
+				D55C6D7E8F9A0B1C2D3E4F5A /* WorkspaceApplyCoordinator.swift */,
 			);
 			name = Importers;
 			sourceTree = "<group>";
@@ -464,6 +483,7 @@
 				B96A25585480C5947F8AFE78 /* JSONValue.swift */,
 				E9A722EEC47ED7F8F26E2123 /* Manifest.swift */,
 				76F8A4814E49ED371A031A18 /* OperationReport.swift */,
+				D77E8F9A0B1C2D3E4F5A6B7C /* WorkspaceModels.swift */,
 				C3CE930BD8D7992EA1AE1EFC /* WorkflowResults.swift */,
 			);
 			name = SharedModels;
@@ -497,6 +517,7 @@
 				92D88C1E25FD46AD98DD21F9 /* GitGlobalExporter.swift */,
 				7D9FEB5D2835F388A665AA58 /* HomebrewExporter.swift */,
 				33A359B1C74CC329F34EAD8B /* VSCodeExporter.swift */,
+				D66D7E8F9A0B1C2D3E4F5A6B /* WorkspacePromoteCoordinator.swift */,
 			);
 			name = Exporters;
 			sourceTree = "<group>";
@@ -815,6 +836,7 @@
 				9154827ABE9891191F9C7ADD /* JSONValue.swift in Sources */,
 				C3263C6F3323E798A34E6C24 /* Manifest.swift in Sources */,
 				337206B6358CD95F9722F09A /* OperationReport.swift in Sources */,
+				C77E8F9A0B1C2D3E4F5A6B7C /* WorkspaceModels.swift in Sources */,
 				E241E07F51C362839691448C /* WorkflowResults.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -829,6 +851,7 @@
 				2A36B6B1383ADF1801AF666C /* GitGlobalExporter.swift in Sources */,
 				1EBCCF9B9099677028800CAC /* HomebrewExporter.swift in Sources */,
 				6318705510CB4FA5D5EF5FCD /* VSCodeExporter.swift in Sources */,
+				C66D7E8F9A0B1C2D3E4F5A6B /* WorkspacePromoteCoordinator.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -838,6 +861,7 @@
 			files = (
 				C586A16879CDB7324A28911E /* ComponentImportResult.swift in Sources */,
 				A8FB6C40101F35DFFC5D0D1B /* ImportCoordinator.swift in Sources */,
+				C55C6D7E8F9A0B1C2D3E4F5A /* WorkspaceApplyCoordinator.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -849,7 +873,9 @@
 				9B7F9C7115C149AA93A6E2C1 /* BundlePreviewService.swift in Sources */,
 				7428FBD003D2E1B4645C206C /* BundleValidator.swift in Sources */,
 				BA6E75A34981D320411678D5 /* CommandRunner.swift in Sources */,
+				C44B5C6D7E8F9A0B1C2D3E4F /* DriftEngine.swift in Sources */,
 				6255135D3D7FB70FE8CA1A3D /* DotfileAllowlist.swift in Sources */,
+				C33A4B5C6D7E8F9A0B1C2D3E /* EnvironmentScanner.swift in Sources */,
 				F2493189C3CA92A42A8C799E /* ErrorTypes.swift in Sources */,
 				D54909C740771AD897017E0F /* FileRestorer.swift in Sources */,
 				F90D4E0EB528F3CAC0E93C5A /* FileSystem.swift in Sources */,
@@ -860,6 +886,8 @@
 				3CE46BE89EBD3A0E4077C4D9 /* ManualTaskEngine.swift in Sources */,
 				589301B262E9752B37F05512 /* PathUtilities.swift in Sources */,
 				49545362F3F9CE6DA257E5F9 /* PreflightService.swift in Sources */,
+				C22F3A4B5C6D7E8F9A0B1C2D /* RepoSnapshotLoader.swift in Sources */,
+				C11E2F3A4B5C6D7E8F9A0B1C /* RepoWorkspaceDetector.swift in Sources */,
 				B7FC2429E62259775A3603FE /* RestorePlanBuilder.swift in Sources */,
 				F994062A9D103F2AE9FFCDE2 /* SecretPolicy.swift in Sources */,
 				12FB4A996A1FD83710CE9C7A /* StructuredLogger.swift in Sources */,
