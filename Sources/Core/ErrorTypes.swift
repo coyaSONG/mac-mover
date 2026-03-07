@@ -4,6 +4,7 @@ public enum MoverError: Error, LocalizedError, Sendable {
     case commandFailed(executable: String, arguments: [String], code: Int32, stderr: String)
     case missingRequiredFile(String)
     case invalidManifest(String)
+    case invalidWorkspace(String)
     case unsupportedSchemaVersion(String)
     case blockedByPreflight(String)
     case ioFailure(String)
@@ -16,6 +17,8 @@ public enum MoverError: Error, LocalizedError, Sendable {
             return "Missing required file: \(path)"
         case .invalidManifest(let reason):
             return "Invalid manifest: \(reason)"
+        case .invalidWorkspace(let reason):
+            return "Invalid workspace: \(reason)"
         case .unsupportedSchemaVersion(let version):
             return "Unsupported schema version: \(version)"
         case .blockedByPreflight(let reason):
