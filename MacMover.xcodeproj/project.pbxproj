@@ -63,6 +63,15 @@
 		F90D4E0EB528F3CAC0E93C5A /* FileSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDA76895D0245A6E94FA58EB /* FileSystem.swift */; };
 		F994062A9D103F2AE9FFCDE2 /* SecretPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14B04BFE56F094D323DEB862 /* SecretPolicy.swift */; };
 		FAD9B75E783BA92F7422487F /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A7F5D83EDCA3664B70DB9F01 /* Cocoa.framework */; };
+		CA1B2C3D4E5F6A7B8C9D0E1F /* AppColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1B2C3D4E5F6A7B8C9D0E1F /* AppColors.swift */; };
+		CB2C3D4E5F6A7B8C9D0E1F2A /* CardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB2C3D4E5F6A7B8C9D0E1F2A /* CardView.swift */; };
+		CC3D4E5F6A7B8C9D0E1F2A3B /* StatusBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC3D4E5F6A7B8C9D0E1F2A3B /* StatusBadge.swift */; };
+		CD4E5F6A7B8C9D0E1F2A3B4C /* ManualTaskRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD4E5F6A7B8C9D0E1F2A3B4C /* ManualTaskRow.swift */; };
+		CE5F6A7B8C9D0E1F2A3B4C5D /* ProgressOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE5F6A7B8C9D0E1F2A3B4C5D /* ProgressOverlay.swift */; };
+		CF6A7B8C9D0E1F2A3B4C5D6E /* OverviewTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF6A7B8C9D0E1F2A3B4C5D6E /* OverviewTab.swift */; };
+		DA7B8C9D0E1F2A3B4C5D6E7F /* ExportTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA7B8C9D0E1F2A3B4C5D6E7F /* ExportTab.swift */; };
+		DB8C9D0E1F2A3B4C5D6E7F8A /* ImportTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB8C9D0E1F2A3B4C5D6E7F8A /* ImportTab.swift */; };
+		DC9D0E1F2A3B4C5D6E7F8A9B /* ReportsTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC9D0E1F2A3B4C5D6E7F8A9B /* ReportsTab.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -222,6 +231,15 @@
 		F91B80E451094E3389BD1ED6 /* ManifestValidator.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ManifestValidator.swift; path = Sources/Core/ManifestValidator.swift; sourceTree = "<group>"; };
 		FB2D29FC19115DED0315CDEA /* Reporting.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Reporting.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		FD4D4F9C7C892096D8B26F2B /* ManifestTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ManifestTests.swift; path = Tests/ManifestSchemaTests/ManifestTests.swift; sourceTree = "<group>"; };
+		AA1B2C3D4E5F6A7B8C9D0E1F /* AppColors.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AppColors.swift; path = Sources/App/Theme/AppColors.swift; sourceTree = "<group>"; };
+		AB2C3D4E5F6A7B8C9D0E1F2A /* CardView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CardView.swift; path = Sources/App/Theme/CardView.swift; sourceTree = "<group>"; };
+		AC3D4E5F6A7B8C9D0E1F2A3B /* StatusBadge.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = StatusBadge.swift; path = Sources/App/Components/StatusBadge.swift; sourceTree = "<group>"; };
+		AD4E5F6A7B8C9D0E1F2A3B4C /* ManualTaskRow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ManualTaskRow.swift; path = Sources/App/Components/ManualTaskRow.swift; sourceTree = "<group>"; };
+		AE5F6A7B8C9D0E1F2A3B4C5D /* ProgressOverlay.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ProgressOverlay.swift; path = Sources/App/Components/ProgressOverlay.swift; sourceTree = "<group>"; };
+		AF6A7B8C9D0E1F2A3B4C5D6E /* OverviewTab.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = OverviewTab.swift; path = Sources/App/Tabs/OverviewTab.swift; sourceTree = "<group>"; };
+		BA7B8C9D0E1F2A3B4C5D6E7F /* ExportTab.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExportTab.swift; path = Sources/App/Tabs/ExportTab.swift; sourceTree = "<group>"; };
+		BB8C9D0E1F2A3B4C5D6E7F8A /* ImportTab.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ImportTab.swift; path = Sources/App/Tabs/ImportTab.swift; sourceTree = "<group>"; };
+		BC9D0E1F2A3B4C5D6E7F8A9B /* ReportsTab.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ReportsTab.swift; path = Sources/App/Tabs/ReportsTab.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -387,8 +405,41 @@
 				BF2EE3A2FBD51810F9530372 /* AppState.swift */,
 				4E01D9EEE3154B3844C5C47A /* ContentView.swift */,
 				A777B0C703BD2A3E9300DBF7 /* MacMoverApp.swift */,
+				DD1E2F3A4B5C6D7E8F9A0B1C /* Theme */,
+				DE2F3A4B5C6D7E8F9A0B1C2D /* Components */,
+				DF3A4B5C6D7E8F9A0B1C2D3E /* Tabs */,
 			);
 			name = App;
+			sourceTree = "<group>";
+		};
+		DD1E2F3A4B5C6D7E8F9A0B1C /* Theme */ = {
+			isa = PBXGroup;
+			children = (
+				AA1B2C3D4E5F6A7B8C9D0E1F /* AppColors.swift */,
+				AB2C3D4E5F6A7B8C9D0E1F2A /* CardView.swift */,
+			);
+			name = Theme;
+			sourceTree = "<group>";
+		};
+		DE2F3A4B5C6D7E8F9A0B1C2D /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				AD4E5F6A7B8C9D0E1F2A3B4C /* ManualTaskRow.swift */,
+				AE5F6A7B8C9D0E1F2A3B4C5D /* ProgressOverlay.swift */,
+				AC3D4E5F6A7B8C9D0E1F2A3B /* StatusBadge.swift */,
+			);
+			name = Components;
+			sourceTree = "<group>";
+		};
+		DF3A4B5C6D7E8F9A0B1C2D3E /* Tabs */ = {
+			isa = PBXGroup;
+			children = (
+				BA7B8C9D0E1F2A3B4C5D6E7F /* ExportTab.swift */,
+				BB8C9D0E1F2A3B4C5D6E7F8A /* ImportTab.swift */,
+				AF6A7B8C9D0E1F2A3B4C5D6E /* OverviewTab.swift */,
+				BC9D0E1F2A3B4C5D6E7F8A9B /* ReportsTab.swift */,
+			);
+			name = Tabs;
 			sourceTree = "<group>";
 		};
 		930D5158E5675B8C3C252D24 /* All */ = {
@@ -724,9 +775,18 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CA1B2C3D4E5F6A7B8C9D0E1F /* AppColors.swift in Sources */,
 				5F4222D41764BC5270523EE0 /* AppState.swift in Sources */,
+				CB2C3D4E5F6A7B8C9D0E1F2A /* CardView.swift in Sources */,
 				96CFB959F9D0D3B86B39B601 /* ContentView.swift in Sources */,
+				DA7B8C9D0E1F2A3B4C5D6E7F /* ExportTab.swift in Sources */,
+				DB8C9D0E1F2A3B4C5D6E7F8A /* ImportTab.swift in Sources */,
 				520C2FB32B4FDB18314C6C5C /* MacMoverApp.swift in Sources */,
+				CD4E5F6A7B8C9D0E1F2A3B4C /* ManualTaskRow.swift in Sources */,
+				CF6A7B8C9D0E1F2A3B4C5D6E /* OverviewTab.swift in Sources */,
+				CE5F6A7B8C9D0E1F2A3B4C5D /* ProgressOverlay.swift in Sources */,
+				DC9D0E1F2A3B4C5D6E7F8A9B /* ReportsTab.swift in Sources */,
+				CC3D4E5F6A7B8C9D0E1F2A3B /* StatusBadge.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
