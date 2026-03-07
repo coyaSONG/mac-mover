@@ -40,6 +40,7 @@ public struct WorkspacePromoteCoordinator {
         var skipped: [StepResult] = []
         var manualTasks: [ManualTask] = []
         var stagedFiles: [URL] = []
+        let isChezmoiWorkspace = workspace.detectedTools.contains(.chezmoi)
 
         for selection in selections {
             guard selection.suggestedResolutions.contains(.promote) else {
@@ -59,7 +60,9 @@ public struct WorkspacePromoteCoordinator {
                 continue
             }
 
-            if SecretPolicy.shouldExclude(path: selection.identifier) {
+            let isSecretLikePath = SecretPolicy.shouldExclude(path: selection.identifier)
+
+            if isSecretLikePath && !isChezmoiWorkspace {
                 skipped.append(
                     StepResult(
                         id: "workspace.promote.\(selection.identifier)",
@@ -85,7 +88,12 @@ public struct WorkspacePromoteCoordinator {
             }
 
             let sourceURL = URL(fileURLWithPath: PathNormalizer.expandTilde(selection.identifier, homeDirectory: homeDirectory))
-            let relativePath = PathNormalizer.normalizedDotfileRelativePath(selection.identifier, homeDirectory: homeDirectory)
+            let relativePath = stagedRelativePath(
+                for: selection.identifier,
+                homeDirectory: homeDirectory,
+                useChezmoiNaming: isChezmoiWorkspace,
+                isSecretLikePath: isSecretLikePath
+            )
             let destinationURL = stagingRoot.appendingPathComponent(relativePath)
 
             do {
@@ -124,5 +132,32 @@ public struct WorkspacePromoteCoordinator {
                 manualTasks: manualTasks
             )
         )
+    }
+
+    private func stagedRelativePath(
+        for path: String,
+        homeDirectory: String,
+        useChezmoiNaming: Bool,
+        isSecretLikePath: Bool
+    ) -> String {
+        let relativePath = PathNormalizer.normalizedDotfileRelativePath(path, homeDirectory: homeDirectory)
+        guard useChezmoiNaming else {
+            return relativePath
+        }
+
+        let components = relativePath.split(separator: "/", omittingEmptySubsequences: false).map(String.init)
+        guard let first = components.first else {
+            return relativePath
+        }
+
+        let transformedFirst: String
+        if first.hasPrefix(".") {
+            let prefix = isSecretLikePath ? "private_dot_" : "dot_"
+            transformedFirst = prefix + String(first.dropFirst())
+        } else {
+            transformedFirst = first
+        }
+
+        return ([transformedFirst] + components.dropFirst()).joined(separator: "/")
     }
 }
