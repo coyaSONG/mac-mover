@@ -1,11 +1,13 @@
-#if canImport(XCTest)
-import XCTest
+import Foundation
+import Testing
 @testable import SharedModels
 @testable import Core
 @testable import Reporting
 
-final class CoreBehaviorTests: XCTestCase {
-    func testRestorePlanOrdering() {
+@Suite("Core Behavior Tests")
+struct CoreBehaviorTests {
+    @Test("Restore plan ordering")
+    func restorePlanOrdering() {
         let items = [
             ManifestItem(id: "vscode.ext", kind: .vscodeExtension, title: "ext", restorePhase: .ide, payload: [:], secret: false),
             ManifestItem(id: "dotfile.zshrc", kind: .dotfile, title: "zshrc", restorePhase: .config, payload: [:], secret: false),
@@ -13,53 +15,58 @@ final class CoreBehaviorTests: XCTestCase {
         ]
 
         let plan = RestorePlanBuilder().build(items: items)
-        XCTAssertEqual(plan.map(\.phase), [.preflight, .bootstrap, .packages, .config, .ide, .manual, .verify])
-        XCTAssertEqual(plan.first(where: { $0.phase == .verify })?.itemIds.sorted(), items.map(\.id).sorted())
+        #expect(plan.map(\.phase) == [.preflight, .bootstrap, .packages, .config, .ide, .manual, .verify])
+        #expect(plan.first(where: { $0.phase == .verify })?.itemIds.sorted() == items.map(\.id).sorted())
     }
 
-    func testDotfileBackupNaming() {
+    @Test("Dotfile backup naming")
+    func dotfileBackupNaming() {
         let date = Date(timeIntervalSince1970: 1_735_872_123)
         let backup = BackupNamer.backupURL(for: URL(fileURLWithPath: "/Users/test/.zshrc"), timestamp: date)
-        XCTAssertTrue(backup.path.hasPrefix("/Users/test/.zshrc.bak."))
-        XCTAssertTrue(backup.lastPathComponent.contains(".bak."))
+
+        #expect(backup.path.hasPrefix("/Users/test/.zshrc.bak."))
+        #expect(backup.lastPathComponent.contains(".bak."))
     }
 
-    func testPathNormalization() {
+    @Test("Path normalization")
+    func pathNormalization() {
         let expanded = PathNormalizer.expandTilde("~/.config/starship.toml", homeDirectory: "/Users/test")
-        XCTAssertEqual(expanded, "/Users/test/.config/starship.toml")
+        #expect(expanded == "/Users/test/.config/starship.toml")
 
         let collapsed = PathNormalizer.collapseHome("/Users/test/.zshrc", homeDirectory: "/Users/test")
-        XCTAssertEqual(collapsed, "~/.zshrc")
+        #expect(collapsed == "~/.zshrc")
 
         let relative = PathNormalizer.normalizedDotfileRelativePath("~/.config/starship.toml", homeDirectory: "/Users/test")
-        XCTAssertEqual(relative, ".config/starship.toml")
+        #expect(relative == ".config/starship.toml")
     }
 
-    func testManualTaskGeneration() {
+    @Test("Manual task generation")
+    func manualTaskGeneration() {
         let engine = ManualTaskEngine()
         let brewTask = engine.taskForMissingBrew()
-        XCTAssertTrue(brewTask.blocking)
-        XCTAssertEqual(brewTask.id, "manual.install.homebrew")
+        #expect(brewTask.blocking)
+        #expect(brewTask.id == "manual.install.homebrew")
 
         let archTask = engine.taskForArchitectureMismatch(source: .arm64, target: .x86_64)
-        XCTAssertFalse(archTask.blocking)
-        XCTAssertTrue(archTask.reason.contains("arm64"))
-        XCTAssertTrue(archTask.reason.contains("x86_64"))
+        #expect(!archTask.blocking)
+        #expect(archTask.reason.contains("arm64"))
+        #expect(archTask.reason.contains("x86_64"))
 
         let secretTask = engine.taskForExcludedSecret("~/.ssh/id_ed25519")
-        XCTAssertEqual(secretTask.title, "Secret item requires manual transfer")
-        XCTAssertTrue(secretTask.reason.contains(".ssh"))
+        #expect(secretTask.title == "Secret item requires manual transfer")
+        #expect(secretTask.reason.contains(".ssh"))
 
         let unsupportedTask = engine.taskForUnsupportedFile("~/Library/Application Support/Docker")
-        XCTAssertEqual(unsupportedTask.title, "Unsupported file")
-        XCTAssertTrue(unsupportedTask.reason.contains("Docker"))
+        #expect(unsupportedTask.title == "Unsupported file")
+        #expect(unsupportedTask.reason.contains("Docker"))
 
         let overwriteTask = engine.taskForOverwriteConfirmation("~/.gitconfig")
-        XCTAssertEqual(overwriteTask.title, "Overwrite backup created")
-        XCTAssertTrue(overwriteTask.reason.contains(".gitconfig"))
+        #expect(overwriteTask.title == "Overwrite backup created")
+        #expect(overwriteTask.reason.contains(".gitconfig"))
     }
 
-    func testPreflightChecksIncludeBrewPrefixAndWriteability() {
+    @Test("Preflight checks include Brew prefix and writeability")
+    func preflightChecksIncludeBrewPrefixAndWriteability() {
         let runner = MockCommandRunner(stubs: [
             .init(executable: "/bin/hostname", arguments: [], result: .success(.init(executable: "/bin/hostname", arguments: [], exitCode: 0, stdout: "test-host\n", stderr: ""))),
             .init(executable: "/usr/bin/uname", arguments: ["-m"], result: .success(.init(executable: "/usr/bin/uname", arguments: ["-m"], exitCode: 0, stdout: "arm64\n", stderr: ""))),
@@ -82,12 +89,13 @@ final class CoreBehaviorTests: XCTestCase {
 
         let result = service.run(mode: .export(destination: URL(fileURLWithPath: "/tmp/export")))
 
-        XCTAssertEqual(result.machine.homebrewPrefix, "/opt/homebrew")
-        XCTAssertTrue(result.checks.contains(where: { $0.id == "preflight.brew-prefix" && $0.passed && $0.detail == "/opt/homebrew" }))
-        XCTAssertTrue(result.checks.contains(where: { $0.id == "preflight.write" && $0.passed && $0.detail == "/tmp/export" }))
+        #expect(result.machine.homebrewPrefix == "/opt/homebrew")
+        #expect(result.checks.contains(where: { $0.id == "preflight.brew-prefix" && $0.passed && $0.detail == "/opt/homebrew" }))
+        #expect(result.checks.contains(where: { $0.id == "preflight.write" && $0.passed && $0.detail == "/tmp/export" }))
     }
 
-    func testPreflightBrewPrefixFailsWhenPrefixLookupFails() {
+    @Test("Preflight Brew prefix fails when lookup fails")
+    func preflightBrewPrefixFailsWhenPrefixLookupFails() {
         let runner = MockCommandRunner(stubs: [
             .init(executable: "/bin/hostname", arguments: [], result: .success(.init(executable: "/bin/hostname", arguments: [], exitCode: 0, stdout: "test-host\n", stderr: ""))),
             .init(executable: "/usr/bin/uname", arguments: ["-m"], result: .success(.init(executable: "/usr/bin/uname", arguments: ["-m"], exitCode: 0, stdout: "arm64\n", stderr: ""))),
@@ -103,11 +111,12 @@ final class CoreBehaviorTests: XCTestCase {
 
         let result = service.run(mode: .export(destination: URL(fileURLWithPath: "/tmp/export")))
 
-        XCTAssertTrue(result.checks.contains(where: { $0.id == "preflight.brew" && $0.passed }))
-        XCTAssertTrue(result.checks.contains(where: { $0.id == "preflight.brew-prefix" && !$0.passed }))
+        #expect(result.checks.contains(where: { $0.id == "preflight.brew" && $0.passed }))
+        #expect(result.checks.contains(where: { $0.id == "preflight.brew-prefix" && !$0.passed }))
     }
 
-    func testRestoreFileCreatesBackupBeforeOverwrite() throws {
+    @Test("Restore file creates backup before overwrite")
+    func restoreFileCreatesBackupBeforeOverwrite() throws {
         let sourceURL = URL(fileURLWithPath: "/tmp/source/.zshrc")
         let destinationURL = URL(fileURLWithPath: "/Users/test/.zshrc")
         let fileSystem = InMemoryFileSystem(
@@ -123,13 +132,15 @@ final class CoreBehaviorTests: XCTestCase {
             to: destinationURL,
             timestamp: Date(timeIntervalSince1970: 1_735_872_123)
         )
+        let unwrappedBackupURL = try #require(backupURL)
 
-        XCTAssertEqual(backupURL?.lastPathComponent, ".zshrc.bak.20250103-024203")
-        XCTAssertEqual(String(data: try fileSystem.readData(at: destinationURL), encoding: .utf8), "new-value")
-        XCTAssertEqual(String(data: try fileSystem.readData(at: backupURL!), encoding: .utf8), "old-value")
+        #expect(unwrappedBackupURL.lastPathComponent == ".zshrc.bak.20250103-024203")
+        #expect(String(data: try fileSystem.readData(at: destinationURL), encoding: .utf8) == "new-value")
+        #expect(String(data: try fileSystem.readData(at: unwrappedBackupURL), encoding: .utf8) == "old-value")
     }
 
-    func testBundlePreviewLoadsManualTasksReportsAndLogs() throws {
+    @Test("Bundle preview loads manual tasks reports and logs")
+    func bundlePreviewLoadsManualTasksReportsAndLogs() throws {
         let homeDirectory = FileManager.default.homeDirectoryForCurrentUser.path
         let bundleURL = URL(fileURLWithPath: "/tmp/preview-bundle")
         let layout = BundleLayout(root: bundleURL)
@@ -210,15 +221,16 @@ final class CoreBehaviorTests: XCTestCase {
 
         let preview = try previewService.load(from: bundleURL)
 
-        XCTAssertEqual(preview.manifest.manualTasks.count, 1)
-        XCTAssertEqual(preview.exportSummary, "# Export\n")
-        XCTAssertTrue(preview.importSummary.hasPrefix("Not found:"))
-        XCTAssertEqual(preview.verifySummary, "# Verify\n")
-        XCTAssertEqual(preview.logsPreview, "{\"message\":\"ok\"}\n")
-        XCTAssertTrue(preview.preflight.checks.contains(where: { $0.id == "preflight.bundle.exists" && $0.passed }))
+        #expect(preview.manifest.manualTasks.count == 1)
+        #expect(preview.exportSummary == "# Export\n")
+        #expect(preview.importSummary.hasPrefix("Not found:"))
+        #expect(preview.verifySummary == "# Verify\n")
+        #expect(preview.logsPreview == "{\"message\":\"ok\"}\n")
+        #expect(preview.preflight.checks.contains(where: { $0.id == "preflight.bundle.exists" && $0.passed }))
     }
 
-    func testReportGenerationIncludesSections() {
+    @Test("Report generation includes sections")
+    func reportGenerationIncludesSections() {
         let report = OperationReport(
             title: "Verify Summary",
             successes: [StepResult(id: "1", title: "A", status: .success, detail: "ok")],
@@ -229,10 +241,9 @@ final class CoreBehaviorTests: XCTestCase {
         )
 
         let markdown = MarkdownReportWriter().renderOperationReport(report)
-        XCTAssertTrue(markdown.contains("## Success"))
-        XCTAssertTrue(markdown.contains("## Failed"))
-        XCTAssertTrue(markdown.contains("## Manual Follow-up"))
-        XCTAssertTrue(markdown.contains("Manual"))
+        #expect(markdown.contains("## Success"))
+        #expect(markdown.contains("## Failed"))
+        #expect(markdown.contains("## Manual Follow-up"))
+        #expect(markdown.contains("Manual"))
     }
 }
-#endif

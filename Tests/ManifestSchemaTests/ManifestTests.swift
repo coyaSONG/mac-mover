@@ -1,10 +1,11 @@
-#if canImport(XCTest)
-import XCTest
+import Foundation
+import Testing
 @testable import SharedModels
 @testable import Core
 
-final class ManifestTests: XCTestCase {
-    func testManifestEncodeDecodeRoundTrip() throws {
+struct ManifestTests {
+    @Test
+    func manifestEncodeDecodeRoundTrip() throws {
         let manifest = makeManifest()
 
         let encoder = JSONEncoder()
@@ -15,13 +16,14 @@ final class ManifestTests: XCTestCase {
         decoder.dateDecodingStrategy = .iso8601
         let decoded = try decoder.decode(Manifest.self, from: data)
 
-        XCTAssertEqual(decoded.schemaVersion, .v1_0_0)
-        XCTAssertEqual(decoded.machine.hostname, "test-host")
-        XCTAssertEqual(decoded.items.count, 2)
-        XCTAssertEqual(decoded.restorePlan.last?.phase, .verify)
+        #expect(decoded.schemaVersion == .v1_0_0)
+        #expect(decoded.machine.hostname == "test-host")
+        #expect(decoded.items.count == 2)
+        #expect(decoded.restorePlan.last?.phase == .verify)
     }
 
-    func testSchemaCompatibilityWithSampleManifest() throws {
+    @Test
+    func schemaCompatibilityWithSampleManifest() throws {
         let sampleURL = URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent()
             .deletingLastPathComponent()
@@ -35,18 +37,22 @@ final class ManifestTests: XCTestCase {
         let manifest = try decoder.decode(Manifest.self, from: data)
 
         let validator = ManifestValidator()
-        XCTAssertNoThrow(try validator.validate(manifest))
+        try validator.validate(manifest)
     }
 
-    func testValidatorRejectsUnknownRestoreIds() throws {
+    @Test
+    func validatorRejectsUnknownRestoreIds() throws {
         var manifest = makeManifest()
         manifest.restorePlan.append(RestoreStep(phase: .config, itemIds: ["missing.id"]))
 
         let validator = ManifestValidator()
-        XCTAssertThrowsError(try validator.validate(manifest))
+        #expect(throws: (any Error).self) {
+            try validator.validate(manifest)
+        }
     }
 
-    func testManifestStoreReadWriteRoundTrip() throws {
+    @Test
+    func manifestStoreReadWriteRoundTrip() throws {
         let manifest = makeManifest()
         let fileSystem = InMemoryFileSystem()
         let store = ManifestStore(fileSystem: fileSystem)
@@ -55,7 +61,7 @@ final class ManifestTests: XCTestCase {
         try store.write(manifest, to: manifestURL)
         let decoded = try store.read(from: manifestURL)
 
-        XCTAssertEqual(decoded, manifest)
+        #expect(decoded == manifest)
     }
 
     private func makeManifest() -> Manifest {
@@ -94,8 +100,10 @@ final class ManifestTests: XCTestCase {
                 RestoreStep(phase: .config, itemIds: ["dotfile.zshrc"]),
                 RestoreStep(phase: .verify, itemIds: ["brew.formula.git", "dotfile.zshrc"])
             ],
-            reports: ManifestReports(exportSummaryPath: "reports/export-summary.md", verifySummaryPath: "reports/verify-summary.md")
+            reports: ManifestReports(
+                exportSummaryPath: "reports/export-summary.md",
+                verifySummaryPath: "reports/verify-summary.md"
+            )
         )
     }
 }
-#endif

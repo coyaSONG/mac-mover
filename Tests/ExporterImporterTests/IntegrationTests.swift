@@ -1,13 +1,15 @@
-#if canImport(XCTest)
-import XCTest
+import Foundation
+import Testing
 @testable import SharedModels
 @testable import Core
 @testable import Exporters
 @testable import Importers
 @testable import Reporting
 
-final class IntegrationTests: XCTestCase {
-    func testBrewAndGitParsersWithMockRunner() throws {
+@Suite
+struct IntegrationTests {
+    @Test
+    func brewAndGitParsersWithMockRunner() throws {
         let runner = MockCommandRunner(stubs: [
             .init(executable: "/usr/bin/env", arguments: ["which", "brew"], result: .success(.init(executable: "/usr/bin/env", arguments: ["which", "brew"], exitCode: 0, stdout: "/opt/homebrew/bin/brew\n", stderr: ""))),
             .init(executable: "/usr/bin/env", arguments: ["brew", "bundle", "dump", "--force", "--file", "/tmp/bundle/Brewfile"], result: .success(.init(executable: "/usr/bin/env", arguments: [], exitCode: 0, stdout: "", stderr: ""))),
@@ -26,11 +28,11 @@ final class IntegrationTests: XCTestCase {
         let layout = BundleLayout(root: layoutRoot)
 
         let brewResult = HomebrewExporter(runner: runner, fileSystem: fs, manualTaskEngine: ManualTaskEngine()).export(to: layout)
-        XCTAssertEqual(brewResult.items.filter { $0.kind == .brewFormula }.count, 2)
-        XCTAssertEqual(brewResult.items.filter { $0.kind == .brewCask }.count, 1)
-        XCTAssertEqual(brewResult.items.filter { $0.kind == .brewTap }.count, 1)
-        XCTAssertEqual(brewResult.items.filter { $0.kind == .brewService }.count, 1)
-        XCTAssertTrue(brewResult.successes.contains(where: { $0.id == "export.brew.brewfile" }))
+        #expect(brewResult.items.filter { $0.kind == ItemKind.brewFormula }.count == 2)
+        #expect(brewResult.items.filter { $0.kind == ItemKind.brewCask }.count == 1)
+        #expect(brewResult.items.filter { $0.kind == ItemKind.brewTap }.count == 1)
+        #expect(brewResult.items.filter { $0.kind == ItemKind.brewService }.count == 1)
+        #expect(brewResult.successes.contains(where: { $0.id == "export.brew.brewfile" }))
 
         let exportReport = OperationReport(
             title: "Export Summary",
@@ -41,17 +43,18 @@ final class IntegrationTests: XCTestCase {
             manualTasks: brewResult.manualTasks
         )
         let markdown = MarkdownReportWriter().renderOperationReport(exportReport)
-        XCTAssertTrue(markdown.contains("Brewfile"))
-        XCTAssertTrue(markdown.contains("git"))
-        XCTAssertTrue(markdown.contains("iterm2"))
-        XCTAssertTrue(markdown.contains("postgresql"))
+        #expect(markdown.contains("Brewfile"))
+        #expect(markdown.contains("git"))
+        #expect(markdown.contains("iterm2"))
+        #expect(markdown.contains("postgresql"))
 
         let gitResult = GitGlobalExporter(runner: runner, manualTaskEngine: ManualTaskEngine()).export()
-        XCTAssertEqual(gitResult.items.count, 2)
-        XCTAssertTrue(gitResult.items.contains(where: { $0.id == "git.global.user.email" }))
+        #expect(gitResult.items.count == 2)
+        #expect(gitResult.items.contains(where: { $0.id == "git.global.user.email" }))
     }
 
-    func testGitImportCreatesBackupAndManualTaskBeforeOverwrite() throws {
+    @Test
+    func gitImportCreatesBackupAndManualTaskBeforeOverwrite() throws {
         let homeDirectory = FileManager.default.homeDirectoryForCurrentUser.path
         let gitConfigPath = homeDirectory + "/.gitconfig"
         let bundleURL = URL(fileURLWithPath: "/tmp/git-import-bundle")
@@ -112,12 +115,13 @@ final class IntegrationTests: XCTestCase {
         let result = try coordinator.import(from: bundleURL)
         let backupPaths = fileSystem.snapshotFiles().keys.filter { $0.hasPrefix(gitConfigPath + ".bak.") }
 
-        XCTAssertEqual(backupPaths.count, 1)
-        XCTAssertTrue(result.importReport.manualTasks.contains(where: { $0.id.contains("manual.overwrite") && $0.reason.contains(".gitconfig") }))
-        XCTAssertTrue(result.importReport.successes.contains(where: { $0.id == "git.global.user.email" && $0.detail.contains("backup") }))
+        #expect(backupPaths.count == 1)
+        #expect(result.importReport.manualTasks.contains(where: { $0.id.contains("manual.overwrite") && $0.reason.contains(".gitconfig") }))
+        #expect(result.importReport.successes.contains(where: { $0.id == "git.global.user.email" && $0.detail.contains("backup") }))
     }
 
-    func testVSCodeExporterCopiesFilesAndExtensions() throws {
+    @Test
+    func vscodeExporterCopiesFilesAndExtensions() throws {
         let homeDirectory = "/Users/test"
         let userDirectory = homeDirectory + "/Library/Application Support/Code/User"
         let fileSystem = InMemoryFileSystem(
@@ -148,19 +152,20 @@ final class IntegrationTests: XCTestCase {
         let result = exporter.export(to: layout)
         let files = fileSystem.snapshotFiles()
 
-        XCTAssertTrue(files.keys.contains(layout.vscodeSettingsURL.path))
-        XCTAssertTrue(files.keys.contains(layout.vscodeKeybindingsURL.path))
-        XCTAssertTrue(files.keys.contains(layout.vscodeSnippetsDirectory.appendingPathComponent("javascript.json").path))
-        XCTAssertEqual(result.items.filter { $0.kind == .vscodeSettings }.count, 3)
-        XCTAssertEqual(result.items.filter { $0.kind == .vscodeExtension }.count, 2)
-        XCTAssertTrue(result.successes.contains(where: { $0.id == "vscode.extensions" }))
-        XCTAssertEqual(
-            result.items.first(where: { $0.id == "vscode.extension.ritwickdey.liveserver" })?.payload["version"]?.stringValue,
-            "unknown"
-        )
+        #expect(files.keys.contains(layout.vscodeSettingsURL.path))
+        #expect(files.keys.contains(layout.vscodeKeybindingsURL.path))
+        #expect(files.keys.contains(layout.vscodeSnippetsDirectory.appendingPathComponent("javascript.json").path))
+        #expect(result.items.filter { $0.kind == ItemKind.vscodeSettings }.count == 3)
+        #expect(result.items.filter { $0.kind == ItemKind.vscodeExtension }.count == 2)
+        #expect(result.successes.contains(where: { $0.id == "vscode.extensions" }))
+
+        let liveServerItem = result.items.first(where: { $0.id == "vscode.extension.ritwickdey.liveserver" })
+        #expect(liveServerItem != nil)
+        #expect(liveServerItem?.payload["version"]?.stringValue == "unknown")
     }
 
-    func testVSCodeImportRestoresFilesAndExtensions() throws {
+    @Test
+    func vscodeImportRestoresFilesAndExtensions() throws {
         let homeDirectory = FileManager.default.homeDirectoryForCurrentUser.path
         let bundleURL = URL(fileURLWithPath: "/tmp/vscode-import-bundle")
         let layout = BundleLayout(root: bundleURL)
@@ -243,14 +248,15 @@ final class IntegrationTests: XCTestCase {
         let restoredSettings = homeDirectory + "/Library/Application Support/Code/User/settings.json"
         let restoredSnippet = homeDirectory + "/Library/Application Support/Code/User/snippets/javascript.json"
 
-        XCTAssertTrue(fileSystem.fileExists(at: URL(fileURLWithPath: restoredSettings)))
-        XCTAssertTrue(fileSystem.fileExists(at: URL(fileURLWithPath: restoredSnippet)))
-        XCTAssertTrue(result.importReport.successes.contains(where: { $0.id == "vscode.settings" }))
-        XCTAssertTrue(result.importReport.successes.contains(where: { $0.id == "vscode.snippets" }))
-        XCTAssertTrue(result.importReport.successes.contains(where: { $0.id == "vscode.extension.ms-python.python" }))
+        #expect(fileSystem.fileExists(at: URL(fileURLWithPath: restoredSettings)))
+        #expect(fileSystem.fileExists(at: URL(fileURLWithPath: restoredSnippet)))
+        #expect(result.importReport.successes.contains(where: { $0.id == "vscode.settings" }))
+        #expect(result.importReport.successes.contains(where: { $0.id == "vscode.snippets" }))
+        #expect(result.importReport.successes.contains(where: { $0.id == "vscode.extension.ms-python.python" }))
     }
 
-    func testVerifyEngineAndReportOnPartialFailure() {
+    @Test
+    func verifyEngineAndReportOnPartialFailure() {
         let runner = MockCommandRunner(stubs: [
             .init(executable: "/usr/bin/env", arguments: ["git", "config", "--global", "--get", "user.email"], result: .success(.init(executable: "/usr/bin/env", arguments: [], exitCode: 0, stdout: "wrong@example.com\n", stderr: "")))
         ])
@@ -280,15 +286,16 @@ final class IntegrationTests: XCTestCase {
         ]
 
         let report = engine.verify(items: items, homeDirectory: "/Users/test")
-        XCTAssertEqual(report.successes.count, 1)
-        XCTAssertEqual(report.failures.count, 1)
+        #expect(report.successes.count == 1)
+        #expect(report.failures.count == 1)
 
         let markdown = MarkdownReportWriter().renderOperationReport(report)
-        XCTAssertTrue(markdown.contains("## Failed"))
-        XCTAssertTrue(markdown.contains("expected@example.com"))
+        #expect(markdown.contains("## Failed"))
+        #expect(markdown.contains("expected@example.com"))
     }
 
-    func testVerifyEngineSucceedsForBrewAndVSCodeItems() {
+    @Test
+    func verifyEngineSucceedsForBrewAndVSCodeItems() {
         let runner = MockCommandRunner(stubs: [
             .init(executable: "/usr/bin/env", arguments: ["brew", "list", "--formula"], result: .success(.init(executable: "/usr/bin/env", arguments: ["brew", "list", "--formula"], exitCode: 0, stdout: "git\npython\n", stderr: ""))),
             .init(executable: "/usr/bin/env", arguments: ["code", "--list-extensions", "--show-versions"], result: .success(.init(executable: "/usr/bin/env", arguments: ["code", "--list-extensions", "--show-versions"], exitCode: 0, stdout: "ms-python.python@2026.1.0\n", stderr: "")))
@@ -317,8 +324,7 @@ final class IntegrationTests: XCTestCase {
 
         let report = engine.verify(items: items, homeDirectory: "/Users/test")
 
-        XCTAssertEqual(report.successes.count, 2)
-        XCTAssertTrue(report.failures.isEmpty)
+        #expect(report.successes.count == 2)
+        #expect(report.failures.isEmpty)
     }
 }
-#endif

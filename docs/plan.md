@@ -51,4 +51,10 @@ No open optional cleanup items are tracked right now.
 - `./scripts/check-project-source-drift.sh`
 - `./scripts/xcodebuild-check.sh`
 
-In a Command Line Tools-only environment, `swift test` is expected to compile the test bundle without executing XCTest cases.
+## Current Verification Task
+
+1. Run `swift build` and capture success or failure plus any warnings emitted by the compiler.
+2. Run `swift test` and confirm all four test targets execute successfully: `CoreTests`, `ExporterImporterTests`, `ManifestSchemaTests`, and `AppTests`.
+3. If either command fails, fix the reported issue with the smallest reviewable change.
+4. Re-run `swift build` and `swift test` after each fix until both pass cleanly.
+5. Summarize final status as `[pass]`, `[fail]`, or `[blocked]` for build, tests, and warning inventory.

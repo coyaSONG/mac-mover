@@ -95,8 +95,6 @@ The repository now covers the Phase 1 foundation through the Phase 3 v1 workflow
 - `./scripts/check-project-source-drift.sh`
 - `./scripts/xcodebuild-check.sh`
 
-With Command Line Tools only, `swift test` compiles the test targets but does not execute the XCTest cases. Full Xcode is required to run the test suite.
-
 `xcodebuild` requires full Xcode. If the machine is using Command Line Tools only, select full Xcode first:
 
 `sudo xcode-select -s /Applications/Xcode.app/Contents/Developer`
@@ -130,7 +128,6 @@ After import runs on the target machine, the bundle also contains `reports/impor
 - v1 stays within Homebrew, dotfiles allowlist, Git global config, and VS Code.
 - Secret-like content is excluded by default and must be transferred manually when needed.
 - Docker, databases, JetBrains, browser sessions, Keychain, and other non-v1 categories are intentionally unsupported.
-- In a Command Line Tools-only environment, local `swift test` compiles the test bundle but does not execute XCTest cases.
 - Cross-architecture restores are surfaced with manual guidance, not automatic compatibility fixes.
 
 ## Sample Data

@@ -12,6 +12,9 @@ let package = Package(
         .library(name: "Exporters", targets: ["Exporters"]),
         .library(name: "Importers", targets: ["Importers"])
     ],
+    dependencies: [
+        .package(url: "https://github.com/swiftlang/swift-testing.git", from: "0.99.0")
+    ],
     targets: [
         .target(
             name: "SharedModels"
@@ -39,19 +42,41 @@ let package = Package(
         ),
         .testTarget(
             name: "CoreTests",
-            dependencies: ["Core", "SharedModels", "Reporting"]
+            dependencies: [
+                "Core",
+                "SharedModels",
+                "Reporting",
+                .product(name: "Testing", package: "swift-testing")
+            ]
         ),
         .testTarget(
             name: "ExporterImporterTests",
-            dependencies: ["Exporters", "Importers", "Core", "SharedModels", "Reporting"]
+            dependencies: [
+                "Exporters",
+                "Importers",
+                "Core",
+                "SharedModels",
+                "Reporting",
+                .product(name: "Testing", package: "swift-testing")
+            ]
         ),
         .testTarget(
             name: "ManifestSchemaTests",
-            dependencies: ["Core", "SharedModels"]
+            dependencies: [
+                "Core",
+                "SharedModels",
+                .product(name: "Testing", package: "swift-testing")
+            ]
         ),
         .testTarget(
             name: "AppTests",
-            dependencies: ["App", "Core", "SharedModels", "Reporting"]
+            dependencies: [
+                "App",
+                "Core",
+                "SharedModels",
+                "Reporting",
+                .product(name: "Testing", package: "swift-testing")
+            ]
         )
     ]
 )
