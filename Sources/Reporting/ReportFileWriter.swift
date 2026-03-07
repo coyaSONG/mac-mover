@@ -18,4 +18,40 @@ public struct ReportFileWriter {
     public func writeReport(_ report: OperationReport, to url: URL) throws {
         try fileSystem.writeData(Data(markdownWriter.renderOperationReport(report).utf8), to: url)
     }
+
+    public func writeWorkspaceScanSummary(
+        workspace: ConnectedWorkspace,
+        repoSnapshot: RepoSnapshot,
+        environmentSnapshot: EnvironmentSnapshot,
+        to url: URL
+    ) throws {
+        try fileSystem.writeData(
+            Data(
+                markdownWriter.renderWorkspaceScanSummary(
+                    workspace: workspace,
+                    repoSnapshot: repoSnapshot,
+                    environmentSnapshot: environmentSnapshot
+                ).utf8
+            ),
+            to: url
+        )
+    }
+
+    public func writeWorkspaceDriftSummary(
+        driftItems: [DriftItem],
+        manualTasks: [ManualTask],
+        to url: URL,
+        generatedAt: Date = Date()
+    ) throws {
+        try fileSystem.writeData(
+            Data(
+                markdownWriter.renderWorkspaceDriftSummary(
+                    driftItems: driftItems,
+                    manualTasks: manualTasks,
+                    generatedAt: generatedAt
+                ).utf8
+            ),
+            to: url
+        )
+    }
 }
