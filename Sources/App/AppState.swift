@@ -23,6 +23,13 @@ final class AppState: ObservableObject {
 
     @Published var lastExportBundleURL: URL?
     @Published var lastImportBundleURL: URL?
+    @Published private(set) var machineInfo: MachineInfo?
+
+    var machineHost: String { machineInfo?.hostname ?? "Unknown" }
+    var machineArch: String { machineInfo?.architecture.rawValue ?? "Unknown" }
+    var machineOS: String { machineInfo?.macosVersion ?? "Unknown" }
+    var machineHome: String { machineInfo?.homeDirectory ?? "Unknown" }
+    var machineBrewPrefix: String { machineInfo?.homebrewPrefix ?? "Unknown" }
 
     private let preflightService: PreflightService
     private let bundlePreviewLoader: any BundlePreviewLoading
@@ -43,7 +50,8 @@ final class AppState: ObservableObject {
         exportCoordinator: ExportCoordinator = ExportCoordinator(),
         importCoordinator: ImportCoordinator = ImportCoordinator(),
         artifactReader: BundleArtifactReading = BundleArtifactReader(),
-        machineSummaryProvider: @escaping @MainActor () -> String = AppState.buildMachineSummary
+        machineSummaryProvider: @escaping @MainActor () -> String = AppState.buildMachineSummary,
+        initialMachineInfo: MachineInfo? = nil
     ) {
         self.preflightService = preflightService
         self.bundlePreviewLoader = bundlePreviewLoader
@@ -56,6 +64,11 @@ final class AppState: ObservableObject {
         self.machineSummaryProvider = machineSummaryProvider
 
         machineSummary = machineSummaryProvider()
+        if let initialMachineInfo {
+            machineInfo = initialMachineInfo
+        } else {
+            machineInfo = MachineInfoCollector().collect()
+        }
         let desktop = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Desktop")
         exportPath = desktop.appendingPathComponent("MacDevEnvExport").path
     }
