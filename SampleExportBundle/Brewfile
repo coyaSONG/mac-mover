@@ -1,3 +1,5 @@
+# Legacy compatibility sample bundle artifact.
+# The repo-first control tower workflow is the primary product model.
 tap "homebrew/cask"
 brew "git"
 brew "python"

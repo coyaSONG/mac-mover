@@ -6,7 +6,8 @@
 - Approved design doc: `docs/plans/2026-03-07-dev-env-control-tower-design.md`
 - Detailed implementation plan: `docs/plans/2026-03-07-dev-env-control-tower-implementation.md`
 - Sync model: `repo-first + drift detection`
-- Near-term build target: add repo adapters, local environment scanning, drift/apply/promote flows, and updated reports without breaking the current build.
+- Recently completed: repo adapters, local environment scanning, drift/apply/promote flows, workspace reporting, AppState/UI shell reframe, and Xcode project registration for new sources.
+- Near-term build target: finish docs/sample artifact alignment and then run full verification for the repo-first control tower baseline with legacy bundle compatibility intact.
 
 ## Goal
 

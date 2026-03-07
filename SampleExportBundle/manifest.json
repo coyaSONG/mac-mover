@@ -135,6 +135,7 @@
     "exportSummaryPath": "reports/export-summary.md",
     "verifySummaryPath": "reports/verify-summary.md",
     "warnings": [
+      "Legacy compatibility sample bundle artifact; repo-first workspace control is now the primary workflow.",
       "SSH private keys are excluded by default secret policy."
     ]
   }

@@ -1,30 +1,35 @@
 # Mac Dev Env Mover
 
-Local-only macOS app for recreating a personal developer environment on a new Mac without trying to clone the entire machine.
+Local-only macOS app for managing a developer environment repo and recreating that environment on a Mac without trying to clone the entire machine.
 
 ## Current Status
 
-The repository now covers the Phase 1 foundation through the Phase 3 v1 workflow baseline:
+The repository now covers the repo-first control tower baseline plus the legacy bundle compatibility flow:
 
-- macOS app scaffold with SwiftUI tabs for Overview, Export, Import, and Reports / Logs
+- macOS app scaffold with SwiftUI tabs for Overview, Repo, Drift, Export, Import, and Reports
 - shared manifest domain models for machine metadata, item kinds, restore phases, manual tasks, and reports
 - manifest JSON read/write support
 - Preflight checks for macOS version, CPU architecture, home directory, Homebrew, brew prefix, git, VS Code, `code`, and target path writeability
-- Homebrew export/import through Brewfile plus formula, cask, tap, and service manifest items
-- dotfile export/import through the allowlist in `Sources/Core/DotfileAllowlist.swift`
-- Git global config export/import
+- repo workspace detection for `chezmoi`, plain dotfiles, `Brewfile`, `mise`, `.tool-versions`, and VS Code repo files
+- local environment scanning plus drift calculation for Homebrew, dotfiles, Git global config, VS Code, and tool versions
+- workspace apply/promote previews with backup-on-overwrite and manual secret handling
+- Homebrew export/import through Brewfile plus formula, cask, tap, and service manifest items for legacy bundle compatibility
+- dotfile export/import through the allowlist in `Sources/Core/DotfileAllowlist.swift` for legacy bundle compatibility
+- Git global config export/import for legacy bundle compatibility
 - backup-on-overwrite with timestamped `.bak` files
-- Markdown report generation for preflight, export, import, and verify summaries
+- Markdown report generation for workspace scan/drift plus legacy export/import/verify summaries
 - unit and integration tests for preflight, manifest, restore safety, and exporter/importer behavior
 - import bundle preview loading for manual tasks, reports, and logs before restore
 
 ## v1 Scope
 
+- repo-first workspace scan/drift/reporting for supported dev-environment files
 - Homebrew formula, cask, tap, and service metadata
-- dotfiles allowlist
+- dotfiles allowlist plus minimal `chezmoi` compatibility
+- tool version detection for `mise` and `.tool-versions`
 - Git global config
 - VS Code extensions, settings, keybindings, and snippets
-- export, import, and verify reports
+- workspace scan, drift, apply preview, promote preview, export, import, and verify reports
 
 ## v1 Non-Goals
 
@@ -52,7 +57,7 @@ The repository now covers the Phase 1 foundation through the Phase 3 v1 workflow
 
 - `Sources/App` - SwiftUI app shell and app state
 - `Sources/SharedModels` - manifest, report, and workflow domain models
-- `Sources/Core` - preflight, manifest IO, validation, filesystem helpers, restore planning, backup naming, and utilities
+- `Sources/Core` - preflight, manifest IO, validation, workspace detection/scanning, drift logic, filesystem helpers, restore planning, backup naming, and utilities
 - `Sources/Reporting` - Markdown report generation
 - `Sources/Exporters` - export orchestration and exporters
 - `Sources/Importers` - import orchestration and restorers
@@ -115,21 +120,31 @@ After import runs on the target machine, the bundle also contains `reports/impor
 
 ## Usage Flow
 
-1. Launch the app and review the Overview tab to confirm the current machine metadata.
-2. In Export, choose a destination folder and run export to create the bundle, manifest, Brewfile, reports, and logs.
-3. Move the exported bundle to the target Mac using your preferred local transfer method.
-4. In Import, choose the bundle folder and review preflight results plus manual tasks before running import.
-5. After selecting a bundle, use Reports / Logs to preview the existing export, import, and verify summaries plus the latest log preview.
-6. Run Import to apply supported items with backups and report generation.
-7. Run Verify to regenerate `reports/verify-summary.md` against the target machine state when needed.
+1. Launch the app and review the Overview tab to confirm the current machine metadata plus current workspace state.
+2. In Repo, connect a local dev-environment repo and run a workspace scan.
+3. Review Drift to see missing, extra, modified, manual, and unsupported items plus apply/promote previews.
+4. Use Reports to inspect workspace scan/drift summaries and the legacy export/import/verify reports when present.
+5. Use Export and Import when you need legacy bundle creation or same-category machine restore compatibility.
+6. Run Verify against a selected legacy bundle when needed.
+
+## Legacy Bundle Compatibility
+
+The app still preserves the original bundle-based flow for same-category migration support:
+
+1. In Export, choose a destination folder and run export to create the legacy bundle, manifest, Brewfile, reports, and logs.
+2. Move the exported bundle to the target Mac using your preferred local transfer method.
+3. In Import, choose the bundle folder and review preflight results plus manual tasks before running import.
+4. Use Reports to preview the existing export, import, and verify summaries plus the latest log preview.
+5. Run Import and Verify for legacy bundle restore and validation.
 
 ## Known Limitations
 
-- v1 stays within Homebrew, dotfiles allowlist, Git global config, and VS Code.
+- v1 stays within Homebrew, dotfiles, Git global config, VS Code, and lightweight tool-version detection.
+- The repo control tower currently supports apply/promote previews first; the full selection-driven control flow is still being built out.
 - Secret-like content is excluded by default and must be transferred manually when needed.
 - Docker, databases, JetBrains, browser sessions, Keychain, and other non-v1 categories are intentionally unsupported.
 - Cross-architecture restores are surfaced with manual guidance, not automatic compatibility fixes.
 
 ## Sample Data
 
-- `SampleExportBundle/` contains a sample export bundle
+- `SampleExportBundle/` contains a legacy compatibility sample bundle artifact, not the primary repo-first workflow
