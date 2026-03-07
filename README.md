@@ -1,150 +1,148 @@
-# Mac Dev Env Mover
+<div align="center">
 
-Local-only macOS app for managing a developer environment repo and recreating that environment on a Mac without trying to clone the entire machine.
+# MacMover
 
-## Current Status
+**Recreate your dev environment on a new Mac — without cloning the whole machine.**
 
-The repository now covers the repo-first control tower baseline plus the legacy bundle compatibility flow:
+[![macOS 13+](https://img.shields.io/badge/macOS-13%2B-black?logo=apple&logoColor=white)](https://www.apple.com/macos/)
+[![Swift 6.2](https://img.shields.io/badge/Swift-6.2-F05138?logo=swift&logoColor=white)](https://swift.org)
+[![SwiftUI](https://img.shields.io/badge/SwiftUI-blue?logo=swift&logoColor=white)](https://developer.apple.com/xcode/swiftui/)
+[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-- macOS app scaffold with SwiftUI tabs for Overview, Repo, Drift, Export, Import, and Reports
-- shared manifest domain models for machine metadata, item kinds, restore phases, manual tasks, and reports
-- manifest JSON read/write support
-- Preflight checks for macOS version, CPU architecture, home directory, Homebrew, brew prefix, git, VS Code, `code`, and target path writeability
-- repo workspace detection for `chezmoi`, plain dotfiles, `Brewfile`, `mise`, `.tool-versions`, and VS Code repo files
-- local environment scanning plus drift calculation for Homebrew, dotfiles, Git global config, VS Code, and tool versions
-- workspace apply/promote previews with backup-on-overwrite and manual secret handling
-- Homebrew export/import through Brewfile plus formula, cask, tap, and service manifest items for legacy bundle compatibility
-- dotfile export/import through the allowlist in `Sources/Core/DotfileAllowlist.swift` for legacy bundle compatibility
-- Git global config export/import for legacy bundle compatibility
-- backup-on-overwrite with timestamped `.bak` files
-- Markdown report generation for workspace scan/drift plus legacy export/import/verify summaries
-- unit and integration tests for preflight, manifest, restore safety, and exporter/importer behavior
-- import bundle preview loading for manual tasks, reports, and logs before restore
+A native macOS app that scans your dev environment repo, detects drift from your local machine, and helps you apply or export changes — all locally, with no cloud or account required.
 
-## v1 Scope
+</div>
 
-- repo-first workspace scan/drift/reporting for supported dev-environment files
-- Homebrew formula, cask, tap, and service metadata
-- dotfiles allowlist plus minimal `chezmoi` compatibility
-- tool version detection for `mise` and `.tool-versions`
-- Git global config
-- VS Code extensions, settings, keybindings, and snippets
-- workspace scan, drift, apply preview, promote preview, export, import, and verify reports
+---
 
-## v1 Non-Goals
+## Features
 
-- Keychain migration
-- passwords, tokens, sessions, or cloud credentials
-- SSH private key auto-migration
-- Docker images, volumes, or containers
-- local database data
-- JetBrains support
-- Xcode settings sync
-- browser sessions or cookies
-- app license state migration
-- full system settings cloning
-- custom LaunchAgents or LaunchDaemons migration
-- cloud sync, account systems, or any server backend
+- **Repo-first workflow** — Connect a dev-environment repo (chezmoi, plain dotfiles, Brewfile, mise, etc.) and use it as the source of truth
+- **Drift detection** — See what's missing, extra, modified, or needs manual action compared to your repo
+- **Apply & promote previews** — Preview exactly what will change before applying repo state to your machine or promoting local changes back
+- **Homebrew** — Formulas, casks, taps, and services via Brewfile
+- **Dotfiles** — Curated allowlist with chezmoi compatibility
+- **Git global config** — `.gitconfig` export and restore
+- **VS Code** — Extensions, settings, keybindings, and snippets
+- **Tool versions** — `mise` and `.tool-versions` detection
+- **Safe by default** — Secrets excluded, overwrites create `.bak` backups, no silent deletes
+- **Legacy bundle export/import** — Full bundle-based migration for same-category machines
+- **Markdown reports** — Workspace scan, drift, export, import, and verify summaries
 
-## Safety Rules
+## Quick Start
 
-- Secret-like content is excluded by default.
-- Existing files are never silently deleted.
-- Overwrites create timestamped `.bak` backups first.
-- Unsupported or sensitive items should surface as manual tasks in reports.
+### Using SwiftPM
 
-## Repo Layout
+```bash
+swift build
+swift run MacMover
+```
 
-- `Sources/App` - SwiftUI app shell and app state
-- `Sources/SharedModels` - manifest, report, and workflow domain models
-- `Sources/Core` - preflight, manifest IO, validation, workspace detection/scanning, drift logic, filesystem helpers, restore planning, backup naming, and utilities
-- `Sources/Reporting` - Markdown report generation
-- `Sources/Exporters` - export orchestration and exporters
-- `Sources/Importers` - import orchestration and restorers
-- `Tests` - XCTest coverage for current core behavior and integration scaffolding
-- `spec` - manifest schema and sample manifest
-- `docs` - architecture notes, implementation plan, and source product docs
+### Using Xcode
+
+1. Open `MacMover.xcodeproj`
+2. Select the **MacMover** scheme
+3. Build & Run (macOS)
+
+### Prerequisites
+
+| Requirement | Notes |
+|---|---|
+| Xcode (full) | Required for `xcodebuild` and tests |
+| Homebrew | For Homebrew-related workflows |
+| Git | For Git global config and repo detection |
+| VS Code + `code` CLI | For VS Code extension management |
+
+> **Tip:** If you're on Command Line Tools only, switch to full Xcode:
+> ```bash
+> sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+> ```
+
+## How It Works
+
+```
+┌─────────────────────────────────────────────────┐
+│                   MacMover App                  │
+├──────────┬──────────┬───────────┬───────────────┤
+│ Overview │   Repo   │   Drift   │    Reports    │
+├──────────┴──────────┴───────────┴───────────────┤
+│                                                 │
+│  1. Connect your dev-environment repo           │
+│  2. Scan workspace sources                      │
+│  3. Detect drift against local machine          │
+│  4. Preview & apply changes                     │
+│                                                 │
+│  ┌─────────────┐    ┌──────────────────┐        │
+│  │  Your Repo  │◄──►│  Local Machine   │        │
+│  │  (dotfiles, │    │  (Homebrew, git,  │        │
+│  │  Brewfile,  │    │   VS Code, etc.) │        │
+│  │  mise, etc.)│    │                  │        │
+│  └─────────────┘    └──────────────────┘        │
+└─────────────────────────────────────────────────┘
+```
+
+## Project Structure
+
+```
+Sources/
+├── App/             # SwiftUI app shell and state
+├── SharedModels/    # Manifest, report, and workflow models
+├── Core/            # Preflight, scanning, drift, backup, utilities
+├── Reporting/       # Markdown report generation
+├── Exporters/       # Export orchestration
+└── Importers/       # Import orchestration
+
+Tests/               # XCTest coverage (Core, Exporters, Importers, Manifest, App)
+spec/                # Manifest JSON schema and sample
+docs/                # Architecture and implementation plans
+```
+
+## Running Tests
+
+```bash
+swift build
+swift test
+```
+
+Additional project checks:
+
+```bash
+./scripts/check-project-source-drift.sh
+./scripts/xcodebuild-check.sh
+```
+
+## Safety & Security
+
+MacMover is designed with safety as a hard constraint:
+
+- Secret-like content (tokens, private keys, credentials) is **excluded by default**
+- Existing files are **never silently deleted**
+- Every overwrite creates a **timestamped `.bak` backup** first
+- Unsupported or sensitive items surface as **manual tasks** in reports
+- **No cloud, no accounts, no network** — everything stays on your machine
+
+## Non-Goals (v1)
+
+MacMover intentionally does **not** handle:
+
+Keychain / passwords / tokens / SSH keys — Docker — databases — JetBrains — Xcode settings — browser sessions — app licenses — system settings — LaunchAgents / LaunchDaemons — cloud sync
 
 ## Documentation
 
-- `docs/architecture.md` - current architecture and data flow
-- `docs/plan.md` - current implementation plan and phase status
-- `spec/manifest.schema.json` - manifest contract
-- `spec/manifest.sample.json` - sample manifest payload
+| Doc | Description |
+|---|---|
+| [`docs/architecture.md`](docs/architecture.md) | Architecture and data flow |
+| [`docs/plan.md`](docs/plan.md) | Implementation plan and phase status |
+| [`spec/manifest.schema.json`](spec/manifest.schema.json) | Manifest JSON schema |
+| [`spec/manifest.sample.json`](spec/manifest.sample.json) | Sample manifest payload |
 
-## Build and Run
+## Contributing
 
-### SwiftPM
+1. Fork the repo
+2. Create a feature branch
+3. Make sure `swift build` and `swift test` pass
+4. Submit a PR
 
-1. `swift build`
-2. `swift run MacMover`
+## License
 
-### Xcode
-
-1. Open `MacMover.xcodeproj`
-2. Select the `MacMover` scheme or target
-3. Build and run on macOS
-
-## Setup
-
-1. Install full Xcode if you want local `xcodebuild` and XCTest execution.
-2. Select Xcode as the active developer directory:
-   `sudo xcode-select -s /Applications/Xcode.app/Contents/Developer`
-3. Ensure Homebrew, Git, and VS Code are installed on the source or target Mac as needed for the workflows you want to run.
-4. If you want VS Code extension restore, install the `code` CLI from inside VS Code.
-
-## Local Checks
-
-- `swift build`
-- `swift test`
-- `./scripts/check-project-source-drift.sh`
-- `./scripts/xcodebuild-check.sh`
-
-`xcodebuild` requires full Xcode. If the machine is using Command Line Tools only, select full Xcode first:
-
-`sudo xcode-select -s /Applications/Xcode.app/Contents/Developer`
-
-## Export Bundle Shape
-
-- `manifest.json`
-- `Brewfile`
-- `files/dotfiles/...`
-- `files/vscode/settings.json`
-- `files/vscode/keybindings.json`
-- `files/vscode/snippets/...`
-- `reports/export-summary.md`
-- `reports/verify-summary.md` (placeholder until import/verify runs on the target machine)
-- `logs/*.jsonl`
-
-After import runs on the target machine, the bundle also contains `reports/import-summary.md`.
-
-## Usage Flow
-
-1. Launch the app and review the Overview tab to confirm the current machine metadata plus current workspace state.
-2. In Repo, connect a local dev-environment repo and run a workspace scan.
-3. Review Drift to see missing, extra, modified, manual, and unsupported items plus apply/promote previews.
-4. Use Reports to inspect workspace scan/drift summaries and the legacy export/import/verify reports when present.
-5. Use Export and Import when you need legacy bundle creation or same-category machine restore compatibility.
-6. Run Verify against a selected legacy bundle when needed.
-
-## Legacy Bundle Compatibility
-
-The app still preserves the original bundle-based flow for same-category migration support:
-
-1. In Export, choose a destination folder and run export to create the legacy bundle, manifest, Brewfile, reports, and logs.
-2. Move the exported bundle to the target Mac using your preferred local transfer method.
-3. In Import, choose the bundle folder and review preflight results plus manual tasks before running import.
-4. Use Reports to preview the existing export, import, and verify summaries plus the latest log preview.
-5. Run Import and Verify for legacy bundle restore and validation.
-
-## Known Limitations
-
-- v1 stays within Homebrew, dotfiles, Git global config, VS Code, and lightweight tool-version detection.
-- The repo control tower currently supports apply/promote previews first; the full selection-driven control flow is still being built out.
-- Secret-like content is excluded by default and must be transferred manually when needed.
-- Docker, databases, JetBrains, browser sessions, Keychain, and other non-v1 categories are intentionally unsupported.
-- Cross-architecture restores are surfaced with manual guidance, not automatic compatibility fixes.
-
-## Sample Data
-
-- `SampleExportBundle/` contains a legacy compatibility sample bundle artifact, not the primary repo-first workflow
+MIT
