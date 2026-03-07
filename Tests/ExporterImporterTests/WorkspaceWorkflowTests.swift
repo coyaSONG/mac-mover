@@ -273,7 +273,7 @@ struct WorkspaceWorkflowTests {
     }
 
     @Test
-    func promoteStagesChezmoiCandidatesUsingDotAndPrivateDotNaming() throws {
+    func promoteStagesChezmoiCandidatesUsingDotNamingWhileSkippingSecrets() throws {
         let homeDirectory = "/Users/test"
         let workspaceRoot = URL(fileURLWithPath: "/tmp/dev-env-repo")
         let stagingRoot = URL(fileURLWithPath: "/tmp/dev-env-staging")
@@ -315,8 +315,10 @@ struct WorkspaceWorkflowTests {
         let stagedNpmrc = stagingRoot.appendingPathComponent("private_dot_npmrc")
 
         #expect(fileSystem.fileExists(at: stagedConfig))
-        #expect(fileSystem.fileExists(at: stagedNpmrc))
         #expect(result.stagedFiles.contains(stagedConfig))
-        #expect(result.stagedFiles.contains(stagedNpmrc))
+        #expect(!fileSystem.fileExists(at: stagedNpmrc))
+        #expect(!result.stagedFiles.contains(stagedNpmrc))
+        #expect(result.report.skipped.contains(where: { $0.id.contains("workspace.promote.~/.npmrc") }))
+        #expect(result.report.manualTasks.contains(where: { $0.id.contains("manual.secret") && $0.reason.contains(".npmrc") }))
     }
 }

@@ -62,7 +62,7 @@ public struct WorkspacePromoteCoordinator {
 
             let isSecretLikePath = SecretPolicy.shouldExclude(path: selection.identifier)
 
-            if isSecretLikePath && !isChezmoiWorkspace {
+            if isSecretLikePath {
                 skipped.append(
                     StepResult(
                         id: "workspace.promote.\(selection.identifier)",
@@ -91,8 +91,7 @@ public struct WorkspacePromoteCoordinator {
             let relativePath = stagedRelativePath(
                 for: selection.identifier,
                 homeDirectory: homeDirectory,
-                useChezmoiNaming: isChezmoiWorkspace,
-                isSecretLikePath: isSecretLikePath
+                useChezmoiNaming: isChezmoiWorkspace
             )
             let destinationURL = stagingRoot.appendingPathComponent(relativePath)
 
@@ -137,8 +136,7 @@ public struct WorkspacePromoteCoordinator {
     private func stagedRelativePath(
         for path: String,
         homeDirectory: String,
-        useChezmoiNaming: Bool,
-        isSecretLikePath: Bool
+        useChezmoiNaming: Bool
     ) -> String {
         let relativePath = PathNormalizer.normalizedDotfileRelativePath(path, homeDirectory: homeDirectory)
         guard useChezmoiNaming else {
@@ -152,8 +150,7 @@ public struct WorkspacePromoteCoordinator {
 
         let transformedFirst: String
         if first.hasPrefix(".") {
-            let prefix = isSecretLikePath ? "private_dot_" : "dot_"
-            transformedFirst = prefix + String(first.dropFirst())
+            transformedFirst = "dot_" + String(first.dropFirst())
         } else {
             transformedFirst = first
         }
