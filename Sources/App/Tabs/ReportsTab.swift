@@ -3,7 +3,11 @@ import SwiftUI
 struct ReportsTab: View {
     @EnvironmentObject private var appState: AppState
 
-    @State private var exportExpanded = true
+    @State private var workspaceScanExpanded = true
+    @State private var workspaceDriftExpanded = true
+    @State private var workspaceApplyExpanded = false
+    @State private var workspacePromoteExpanded = false
+    @State private var exportExpanded = false
     @State private var importExpanded = false
     @State private var verifyExpanded = false
     @State private var logsExpanded = false
@@ -12,19 +16,43 @@ struct ReportsTab: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 reportSection(
-                    title: "Export Report",
+                    title: "Workspace Scan",
+                    icon: "doc.text.magnifyingglass",
+                    content: appState.workspaceScanSummary,
+                    isExpanded: $workspaceScanExpanded
+                )
+                reportSection(
+                    title: "Workspace Drift",
+                    icon: "arrow.left.and.right.righttriangle.left.righttriangle.right",
+                    content: appState.workspaceDriftSummary,
+                    isExpanded: $workspaceDriftExpanded
+                )
+                reportSection(
+                    title: "Apply Preview",
+                    icon: "square.and.arrow.down.on.square",
+                    content: appState.workspaceApplySummary,
+                    isExpanded: $workspaceApplyExpanded
+                )
+                reportSection(
+                    title: "Promote Preview",
+                    icon: "square.and.arrow.up.on.square",
+                    content: appState.workspacePromoteSummary,
+                    isExpanded: $workspacePromoteExpanded
+                )
+                reportSection(
+                    title: "Legacy Export Report",
                     icon: "square.and.arrow.up",
                     content: appState.exportSummary,
                     isExpanded: $exportExpanded
                 )
                 reportSection(
-                    title: "Import Report",
+                    title: "Legacy Import Report",
                     icon: "square.and.arrow.down",
                     content: appState.importSummary,
                     isExpanded: $importExpanded
                 )
                 reportSection(
-                    title: "Verify Report",
+                    title: "Legacy Verify Report",
                     icon: "checkmark.shield",
                     content: appState.verifySummary,
                     isExpanded: $verifyExpanded

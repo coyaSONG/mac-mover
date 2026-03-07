@@ -7,9 +7,38 @@ import Reporting
 import Exporters
 import Importers
 
+protocol WorkspaceDetecting {
+    func detect(at root: URL) throws -> ConnectedWorkspace
+}
+
+extension RepoWorkspaceDetector: WorkspaceDetecting {}
+
+protocol RepoSnapshotLoading {
+    func load(from workspace: ConnectedWorkspace) throws -> RepoSnapshot
+}
+
+extension RepoSnapshotLoader: RepoSnapshotLoading {}
+
+protocol EnvironmentScanning {
+    func scan() -> EnvironmentSnapshot
+}
+
+extension EnvironmentScanner: EnvironmentScanning {}
+
+protocol DriftComparing {
+    func compare(repo: RepoSnapshot, local: EnvironmentSnapshot) -> [DriftItem]
+}
+
+extension DriftEngine: DriftComparing {}
+
 @MainActor
 final class AppState: ObservableObject {
     @Published var machineSummary: String = ""
+    @Published var workspacePath: String = ""
+    @Published var workspaceScanSummary: String = "No workspace scan executed"
+    @Published var workspaceDriftSummary: String = "No workspace drift computed"
+    @Published var workspaceApplySummary: String = "No workspace apply preview"
+    @Published var workspacePromoteSummary: String = "No workspace promote preview"
     @Published var exportPath: String = ""
     @Published var importPath: String = ""
     @Published var exportSummary: String = "No export executed"
@@ -21,6 +50,10 @@ final class AppState: ObservableObject {
     @Published var statusMessage: String = "Idle"
     @Published var isRunning: Bool = false
 
+    @Published var connectedWorkspace: ConnectedWorkspace?
+    @Published var repoSnapshot: RepoSnapshot?
+    @Published var environmentSnapshot: EnvironmentSnapshot?
+    @Published var driftItems: [DriftItem] = []
     @Published var lastExportBundleURL: URL?
     @Published var lastImportBundleURL: URL?
     @Published private(set) var machineInfo: MachineInfo?
@@ -36,9 +69,14 @@ final class AppState: ObservableObject {
     private let bundleValidator: BundleValidator
     private let verifyEngine: VerifyEngine
     private let reportWriter: ReportFileWriter
+    private let markdownWriter: MarkdownReportWriter
     private let exportCoordinator: ExportCoordinator
     private let importCoordinator: ImportCoordinator
     private let artifactReader: BundleArtifactReading
+    private let workspaceDetector: any WorkspaceDetecting
+    private let repoSnapshotLoader: any RepoSnapshotLoading
+    private let environmentScanner: any EnvironmentScanning
+    private let driftEngine: any DriftComparing
     private let machineSummaryProvider: @MainActor () -> String
 
     init(
@@ -47,9 +85,14 @@ final class AppState: ObservableObject {
         bundleValidator: BundleValidator = BundleValidator(),
         verifyEngine: VerifyEngine = VerifyEngine(),
         reportWriter: ReportFileWriter = ReportFileWriter(),
+        markdownWriter: MarkdownReportWriter = MarkdownReportWriter(),
         exportCoordinator: ExportCoordinator = ExportCoordinator(),
         importCoordinator: ImportCoordinator = ImportCoordinator(),
         artifactReader: BundleArtifactReading = BundleArtifactReader(),
+        workspaceDetector: any WorkspaceDetecting = RepoWorkspaceDetector(),
+        repoSnapshotLoader: any RepoSnapshotLoading = RepoSnapshotLoader(),
+        environmentScanner: any EnvironmentScanning = EnvironmentScanner(),
+        driftEngine: any DriftComparing = DriftEngine(),
         machineSummaryProvider: @escaping @MainActor () -> String = AppState.buildMachineSummary,
         initialMachineInfo: MachineInfo? = nil
     ) {
@@ -58,9 +101,14 @@ final class AppState: ObservableObject {
         self.bundleValidator = bundleValidator
         self.verifyEngine = verifyEngine
         self.reportWriter = reportWriter
+        self.markdownWriter = markdownWriter
         self.exportCoordinator = exportCoordinator
         self.importCoordinator = importCoordinator
         self.artifactReader = artifactReader
+        self.workspaceDetector = workspaceDetector
+        self.repoSnapshotLoader = repoSnapshotLoader
+        self.environmentScanner = environmentScanner
+        self.driftEngine = driftEngine
         self.machineSummaryProvider = machineSummaryProvider
 
         machineSummary = machineSummaryProvider()
@@ -71,6 +119,21 @@ final class AppState: ObservableObject {
         }
         let desktop = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Desktop")
         exportPath = desktop.appendingPathComponent("MacDevEnvExport").path
+    }
+
+    func chooseWorkspaceFolder() {
+        let panel = NSOpenPanel()
+        panel.canChooseFiles = false
+        panel.canChooseDirectories = true
+        panel.canCreateDirectories = false
+        panel.allowsMultipleSelection = false
+        panel.prompt = "Select"
+        if panel.runModal() == .OK, let url = panel.url {
+            workspacePath = url.path
+            Task {
+                await connectWorkspace(at: url)
+            }
+        }
     }
 
     func chooseExportFolder() {
@@ -95,6 +158,61 @@ final class AppState: ObservableObject {
         if panel.runModal() == .OK, let url = panel.url {
             importPath = url.path
             runImportPreflight(bundleURL: url)
+        }
+    }
+
+    func connectWorkspace(at url: URL) async {
+        workspacePath = url.path
+        statusMessage = "Workspace scan running..."
+        isRunning = true
+        defer { isRunning = false }
+
+        do {
+            var workspace = try workspaceDetector.detect(at: url)
+            let repoSnapshot = try repoSnapshotLoader.load(from: workspace)
+            let environmentSnapshot = environmentScanner.scan()
+            let driftItems = driftEngine.compare(repo: repoSnapshot, local: environmentSnapshot)
+            workspace.lastScannedAt = Date()
+
+            connectedWorkspace = workspace
+            self.repoSnapshot = repoSnapshot
+            self.environmentSnapshot = environmentSnapshot
+            self.driftItems = driftItems
+            manualTasks = []
+            preflightChecks = []
+            machineSummary = machineSummaryProvider()
+
+            workspaceScanSummary = markdownWriter.renderWorkspaceScanSummary(
+                workspace: workspace,
+                repoSnapshot: repoSnapshot,
+                environmentSnapshot: environmentSnapshot
+            )
+            workspaceDriftSummary = markdownWriter.renderWorkspaceDriftSummary(
+                driftItems: driftItems,
+                manualTasks: manualTasks,
+                generatedAt: workspace.lastScannedAt ?? Date()
+            )
+            workspaceApplySummary = makeWorkspacePreviewSummary(
+                title: "Workspace Apply Preview",
+                resolution: .apply,
+                driftItems: driftItems
+            )
+            workspacePromoteSummary = makeWorkspacePreviewSummary(
+                title: "Workspace Promote Preview",
+                resolution: .promote,
+                driftItems: driftItems
+            )
+            statusMessage = driftItems.isEmpty ? "Workspace scan completed" : "Workspace scan completed with drift"
+        } catch {
+            connectedWorkspace = nil
+            repoSnapshot = nil
+            environmentSnapshot = nil
+            driftItems = []
+            workspaceScanSummary = "No workspace scan executed"
+            workspaceDriftSummary = "No workspace drift computed"
+            workspaceApplySummary = "No workspace apply preview"
+            workspacePromoteSummary = "No workspace promote preview"
+            statusMessage = "Workspace scan failed: \(error.localizedDescription)"
         }
     }
 
@@ -211,5 +329,26 @@ final class AppState: ObservableObject {
     private static func buildMachineSummary() -> String {
         let machine = MachineInfoCollector().collect()
         return "Host: \(machine.hostname)\nArchitecture: \(machine.architecture.rawValue)\nmacOS: \(machine.macosVersion)\nHome: \(machine.homeDirectory)\nBrew Prefix: \(machine.homebrewPrefix)"
+    }
+
+    private func makeWorkspacePreviewSummary(
+        title: String,
+        resolution: DriftResolution,
+        driftItems: [DriftItem]
+    ) -> String {
+        let selectedItems = driftItems.filter { $0.suggestedResolutions.contains(resolution) }
+        var lines: [String] = []
+        lines.append("# \(title)")
+        lines.append("")
+        lines.append("Ready items: \(selectedItems.count)")
+        lines.append("")
+        if selectedItems.isEmpty {
+            lines.append("- (none)")
+        } else {
+            for item in selectedItems.sorted(by: { $0.identifier < $1.identifier }) {
+                lines.append("- \(item.identifier) [\(item.status.rawValue)]")
+            }
+        }
+        return lines.joined(separator: "\n")
     }
 }
