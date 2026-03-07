@@ -7,6 +7,9 @@ swift build
 echo "[ci] swift test"
 swift test
 
+echo "[ci] project source drift"
+./scripts/check-project-source-drift.sh
+
 echo "[ci] xcodebuild checks"
 ./scripts/xcodebuild-check.sh
 

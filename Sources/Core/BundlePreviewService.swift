@@ -1,6 +1,41 @@
 import Foundation
 import SharedModels
 
+public protocol BundleArtifactReading {
+    func readText(at url: URL) -> String
+    func readLogPreview(at logsDirectory: URL) -> String
+}
+
+public struct BundleArtifactReader: BundleArtifactReading {
+    private let fileSystem: FileSysteming
+
+    public init(fileSystem: FileSysteming = LocalFileSystem()) {
+        self.fileSystem = fileSystem
+    }
+
+    public func readText(at url: URL) -> String {
+        guard fileSystem.fileExists(at: url) else {
+            return "Not found: \(url.path)"
+        }
+
+        guard let data = try? fileSystem.readData(at: url),
+              let content = String(data: data, encoding: .utf8) else {
+            return "Unreadable: \(url.path)"
+        }
+
+        return content
+    }
+
+    public func readLogPreview(at logsDirectory: URL) -> String {
+        guard let files = try? fileSystem.listDirectory(at: logsDirectory),
+              let first = files.sorted(by: { $0.lastPathComponent < $1.lastPathComponent }).first else {
+            return "No logs"
+        }
+
+        return readText(at: first)
+    }
+}
+
 public struct BundlePreview: Sendable {
     public let bundleURL: URL
     public let manifest: Manifest
@@ -29,19 +64,24 @@ public struct BundlePreview: Sendable {
     }
 }
 
-public struct BundlePreviewService {
-    private let fileSystem: FileSysteming
+public protocol BundlePreviewLoading {
+    func load(from bundleURL: URL) throws -> BundlePreview
+}
+
+public struct BundlePreviewService: BundlePreviewLoading {
     private let bundleValidator: BundleValidator
     private let preflightService: PreflightService
+    private let artifactReader: BundleArtifactReading
 
     public init(
         fileSystem: FileSysteming = LocalFileSystem(),
         bundleValidator: BundleValidator? = nil,
-        preflightService: PreflightService? = nil
+        preflightService: PreflightService? = nil,
+        artifactReader: BundleArtifactReading? = nil
     ) {
-        self.fileSystem = fileSystem
         self.bundleValidator = bundleValidator ?? BundleValidator(fileSystem: fileSystem)
         self.preflightService = preflightService ?? PreflightService(fileSystem: fileSystem)
+        self.artifactReader = artifactReader ?? BundleArtifactReader(fileSystem: fileSystem)
     }
 
     public func load(from bundleURL: URL) throws -> BundlePreview {
@@ -53,32 +93,10 @@ public struct BundlePreviewService {
             bundleURL: bundleURL,
             manifest: manifest,
             preflight: preflight,
-            exportSummary: readText(at: layout.exportSummaryURL),
-            importSummary: readText(at: layout.importSummaryURL),
-            verifySummary: readText(at: layout.verifySummaryURL),
-            logsPreview: readLogPreview(at: layout.logsDirectory)
+            exportSummary: artifactReader.readText(at: layout.exportSummaryURL),
+            importSummary: artifactReader.readText(at: layout.importSummaryURL),
+            verifySummary: artifactReader.readText(at: layout.verifySummaryURL),
+            logsPreview: artifactReader.readLogPreview(at: layout.logsDirectory)
         )
-    }
-
-    private func readText(at url: URL) -> String {
-        guard fileSystem.fileExists(at: url) else {
-            return "Not found: \(url.path)"
-        }
-
-        guard let data = try? fileSystem.readData(at: url),
-              let content = String(data: data, encoding: .utf8) else {
-            return "Unreadable: \(url.path)"
-        }
-
-        return content
-    }
-
-    private func readLogPreview(at logsDirectory: URL) -> String {
-        guard let files = try? fileSystem.listDirectory(at: logsDirectory),
-              let first = files.sorted(by: { $0.lastPathComponent < $1.lastPathComponent }).first else {
-            return "No logs"
-        }
-
-        return readText(at: first)
     }
 }

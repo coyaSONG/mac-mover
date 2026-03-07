@@ -23,16 +23,38 @@ final class AppState: ObservableObject {
     @Published var lastExportBundleURL: URL?
     @Published var lastImportBundleURL: URL?
 
-    private let preflightService = PreflightService()
-    private let bundlePreviewService = BundlePreviewService()
-    private let bundleValidator = BundleValidator()
-    private let verifyEngine = VerifyEngine()
-    private let reportWriter = ReportFileWriter()
-    private let exportCoordinator = ExportCoordinator()
-    private let importCoordinator = ImportCoordinator()
+    private let preflightService: PreflightService
+    private let bundlePreviewLoader: any BundlePreviewLoading
+    private let bundleValidator: BundleValidator
+    private let verifyEngine: VerifyEngine
+    private let reportWriter: ReportFileWriter
+    private let exportCoordinator: ExportCoordinator
+    private let importCoordinator: ImportCoordinator
+    private let artifactReader: BundleArtifactReading
+    private let machineSummaryProvider: @MainActor () -> String
 
-    init() {
-        machineSummary = currentMachineSummary()
+    init(
+        preflightService: PreflightService = PreflightService(),
+        bundlePreviewLoader: any BundlePreviewLoading = BundlePreviewService(),
+        bundleValidator: BundleValidator = BundleValidator(),
+        verifyEngine: VerifyEngine = VerifyEngine(),
+        reportWriter: ReportFileWriter = ReportFileWriter(),
+        exportCoordinator: ExportCoordinator = ExportCoordinator(),
+        importCoordinator: ImportCoordinator = ImportCoordinator(),
+        artifactReader: BundleArtifactReading = BundleArtifactReader(),
+        machineSummaryProvider: @escaping @MainActor () -> String = AppState.buildMachineSummary
+    ) {
+        self.preflightService = preflightService
+        self.bundlePreviewLoader = bundlePreviewLoader
+        self.bundleValidator = bundleValidator
+        self.verifyEngine = verifyEngine
+        self.reportWriter = reportWriter
+        self.exportCoordinator = exportCoordinator
+        self.importCoordinator = importCoordinator
+        self.artifactReader = artifactReader
+        self.machineSummaryProvider = machineSummaryProvider
+
+        machineSummary = machineSummaryProvider()
         let desktop = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Desktop")
         exportPath = desktop.appendingPathComponent("MacDevEnvExport").path
     }
@@ -72,10 +94,10 @@ final class AppState: ObservableObject {
                 lastExportBundleURL = result.bundleURL
                 manualTasks = result.manifest.manualTasks
                 preflightChecks = result.preflight.checks
-                exportSummary = readFile(at: destination.appendingPathComponent("reports/export-summary.md"))
-                verifySummary = readFile(at: destination.appendingPathComponent("reports/verify-summary.md"))
-                logsPreview = readLogPreview(at: destination.appendingPathComponent("logs"))
-                machineSummary = currentMachineSummary()
+                exportSummary = artifactReader.readText(at: destination.appendingPathComponent("reports/export-summary.md"))
+                verifySummary = artifactReader.readText(at: destination.appendingPathComponent("reports/verify-summary.md"))
+                logsPreview = artifactReader.readLogPreview(at: destination.appendingPathComponent("logs"))
+                machineSummary = machineSummaryProvider()
                 statusMessage = "Export completed"
             } catch {
                 statusMessage = "Export failed: \(error.localizedDescription)"
@@ -85,7 +107,7 @@ final class AppState: ObservableObject {
 
     func runImportPreflight(bundleURL: URL) {
         do {
-            let preview = try bundlePreviewService.load(from: bundleURL)
+            let preview = try bundlePreviewLoader.load(from: bundleURL)
             lastImportBundleURL = preview.bundleURL
             manualTasks = preview.manifest.manualTasks
             preflightChecks = preview.preflight.checks
@@ -93,7 +115,7 @@ final class AppState: ObservableObject {
             importSummary = preview.importSummary
             verifySummary = preview.verifySummary
             logsPreview = preview.logsPreview
-            machineSummary = currentMachineSummary()
+            machineSummary = machineSummaryProvider()
             statusMessage = preview.preflight.hasBlockingFailure ? "Import bundle has blocking preflight issues" : "Import bundle ready"
         } catch {
             lastImportBundleURL = nil
@@ -103,7 +125,7 @@ final class AppState: ObservableObject {
             importSummary = "No import executed"
             verifySummary = "No verify executed"
             logsPreview = "No logs"
-            machineSummary = currentMachineSummary()
+            machineSummary = machineSummaryProvider()
             statusMessage = "Import preflight failed: \(error.localizedDescription)"
         }
     }
@@ -123,9 +145,9 @@ final class AppState: ObservableObject {
                 lastImportBundleURL = result.bundleURL
                 manualTasks = result.importReport.manualTasks
                 preflightChecks = result.preflight.checks
-                importSummary = readFile(at: source.appendingPathComponent("reports/import-summary.md"))
-                verifySummary = readFile(at: source.appendingPathComponent("reports/verify-summary.md"))
-                logsPreview = readLogPreview(at: source.appendingPathComponent("logs"))
+                importSummary = artifactReader.readText(at: source.appendingPathComponent("reports/import-summary.md"))
+                verifySummary = artifactReader.readText(at: source.appendingPathComponent("reports/verify-summary.md"))
+                logsPreview = artifactReader.readLogPreview(at: source.appendingPathComponent("logs"))
                 statusMessage = "Import completed"
             } catch {
                 statusMessage = "Import failed: \(error.localizedDescription)"
@@ -157,8 +179,8 @@ final class AppState: ObservableObject {
                 try reportWriter.writeReport(report, to: BundleLayout(root: source).verifySummaryURL)
 
                 manualTasks = manifest.manualTasks
-                verifySummary = readFile(at: source.appendingPathComponent("reports/verify-summary.md"))
-                logsPreview = readLogPreview(at: source.appendingPathComponent("logs"))
+                verifySummary = artifactReader.readText(at: source.appendingPathComponent("reports/verify-summary.md"))
+                logsPreview = artifactReader.readLogPreview(at: source.appendingPathComponent("logs"))
                 statusMessage = report.failures.isEmpty ? "Verify completed" : "Verify completed with failures"
             } catch {
                 statusMessage = "Verify failed: \(error.localizedDescription)"
@@ -166,22 +188,8 @@ final class AppState: ObservableObject {
         }
     }
 
-    private func currentMachineSummary() -> String {
+    private static func buildMachineSummary() -> String {
         let machine = MachineInfoCollector().collect()
         return "Host: \(machine.hostname)\nArchitecture: \(machine.architecture.rawValue)\nmacOS: \(machine.macosVersion)\nHome: \(machine.homeDirectory)\nBrew Prefix: \(machine.homebrewPrefix)"
-    }
-
-    private func readFile(at url: URL) -> String {
-        (try? String(contentsOf: url, encoding: .utf8)) ?? "Not found: \(url.path)"
-    }
-
-    private func readLogPreview(at logsDirectory: URL) -> String {
-        guard let files = try? FileManager.default.contentsOfDirectory(at: logsDirectory, includingPropertiesForKeys: nil),
-              let first = files.sorted(by: { $0.lastPathComponent < $1.lastPathComponent }).first,
-              let content = try? String(contentsOf: first, encoding: .utf8)
-        else {
-            return "No logs"
-        }
-        return content
     }
 }

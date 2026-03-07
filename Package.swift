@@ -48,6 +48,10 @@ let package = Package(
         .testTarget(
             name: "ManifestSchemaTests",
             dependencies: ["Core", "SharedModels"]
+        ),
+        .testTarget(
+            name: "AppTests",
+            dependencies: ["App", "Core", "SharedModels", "Reporting"]
         )
     ]
 )

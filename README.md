@@ -92,6 +92,7 @@ The repository now covers the Phase 1 foundation through the Phase 3 v1 workflow
 
 - `swift build`
 - `swift test`
+- `./scripts/check-project-source-drift.sh`
 - `./scripts/xcodebuild-check.sh`
 
 With Command Line Tools only, `swift test` compiles the test targets but does not execute the XCTest cases. Full Xcode is required to run the test suite.

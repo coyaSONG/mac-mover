@@ -40,10 +40,15 @@ Deliver Mac Dev Env Mover incrementally while keeping scope limited to the v1 ca
 - broadening support beyond the existing v1 categories
 - redesigning later-phase exporter or importer behavior before the next prompt
 
+## Optional Cleanup
+
+No open optional cleanup items are tracked right now.
+
 ## Verification
 
 - `swift build`
 - `swift test`
+- `./scripts/check-project-source-drift.sh`
 - `./scripts/xcodebuild-check.sh`
 
 In a Command Line Tools-only environment, `swift test` is expected to compile the test bundle without executing XCTest cases.
