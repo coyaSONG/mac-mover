@@ -28,6 +28,7 @@ public struct OperationReport: Codable, Hashable, Sendable {
     public var failures: [StepResult]
     public var skipped: [StepResult]
     public var warnings: [String]
+    public var driftItems: [DriftItem]
     public var manualTasks: [ManualTask]
 
     public init(
@@ -37,6 +38,7 @@ public struct OperationReport: Codable, Hashable, Sendable {
         failures: [StepResult] = [],
         skipped: [StepResult] = [],
         warnings: [String] = [],
+        driftItems: [DriftItem] = [],
         manualTasks: [ManualTask] = []
     ) {
         self.title = title
@@ -45,6 +47,7 @@ public struct OperationReport: Codable, Hashable, Sendable {
         self.failures = failures
         self.skipped = skipped
         self.warnings = warnings
+        self.driftItems = driftItems
         self.manualTasks = manualTasks
     }
 }
