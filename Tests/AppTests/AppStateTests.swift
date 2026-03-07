@@ -125,6 +125,39 @@ func connectWorkspaceLoadsSnapshotsAndDriftState() async throws {
     #expect(appState.statusMessage == "Workspace scan completed with drift")
 }
 
+@Test
+@MainActor
+func contentViewKeepsRepoDriftAndLegacyTransferTabsReachable() throws {
+    let sourceRoot = URL(fileURLWithPath: #filePath)
+        .deletingLastPathComponent()
+        .deletingLastPathComponent()
+        .deletingLastPathComponent()
+    let contentViewURL = sourceRoot.appendingPathComponent("Sources/App/ContentView.swift")
+    let content = try String(contentsOf: contentViewURL, encoding: .utf8)
+
+    #expect(content.contains("Label(\"Repo\""))
+    #expect(content.contains("Label(\"Drift\""))
+    #expect(content.contains("Label(\"Export\""))
+    #expect(content.contains("Label(\"Import\""))
+    #expect(content.contains("Label(\"Reports\""))
+}
+
+@Test
+@MainActor
+func xcodeProjectRegistersRepoAndDriftTabs() throws {
+    let sourceRoot = URL(fileURLWithPath: #filePath)
+        .deletingLastPathComponent()
+        .deletingLastPathComponent()
+        .deletingLastPathComponent()
+    let projectURL = sourceRoot.appendingPathComponent("MacMover.xcodeproj/project.pbxproj")
+    let project = try String(contentsOf: projectURL, encoding: .utf8)
+
+    #expect(project.contains("RepoTab.swift"))
+    #expect(project.contains("DriftTab.swift"))
+    #expect(project.contains("RepoTab.swift in Sources"))
+    #expect(project.contains("DriftTab.swift in Sources"))
+}
+
 private struct MockBundlePreviewLoader: BundlePreviewLoading {
     let result: Result<BundlePreview, Error>
 

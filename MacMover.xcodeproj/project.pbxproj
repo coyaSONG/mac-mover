@@ -72,6 +72,8 @@
 		DA7B8C9D0E1F2A3B4C5D6E7F /* ExportTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA7B8C9D0E1F2A3B4C5D6E7F /* ExportTab.swift */; };
 		DB8C9D0E1F2A3B4C5D6E7F8A /* ImportTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB8C9D0E1F2A3B4C5D6E7F8A /* ImportTab.swift */; };
 		DC9D0E1F2A3B4C5D6E7F8A9B /* ReportsTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC9D0E1F2A3B4C5D6E7F8A9B /* ReportsTab.swift */; };
+		DD0E1F2A3B4C5D6E7F8A9B0C /* RepoTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD0E1F2A3B4C5D6E7F8A9B0C /* RepoTab.swift */; };
+		DE1F2A3B4C5D6E7F8A9B0C1D /* DriftTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE1F2A3B4C5D6E7F8A9B0C1D /* DriftTab.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -240,6 +242,8 @@
 		BA7B8C9D0E1F2A3B4C5D6E7F /* ExportTab.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExportTab.swift; path = Sources/App/Tabs/ExportTab.swift; sourceTree = "<group>"; };
 		BB8C9D0E1F2A3B4C5D6E7F8A /* ImportTab.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ImportTab.swift; path = Sources/App/Tabs/ImportTab.swift; sourceTree = "<group>"; };
 		BC9D0E1F2A3B4C5D6E7F8A9B /* ReportsTab.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ReportsTab.swift; path = Sources/App/Tabs/ReportsTab.swift; sourceTree = "<group>"; };
+		BD0E1F2A3B4C5D6E7F8A9B0C /* RepoTab.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = RepoTab.swift; path = Sources/App/Tabs/RepoTab.swift; sourceTree = "<group>"; };
+		BE1F2A3B4C5D6E7F8A9B0C1D /* DriftTab.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = DriftTab.swift; path = Sources/App/Tabs/DriftTab.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -437,6 +441,8 @@
 				BA7B8C9D0E1F2A3B4C5D6E7F /* ExportTab.swift */,
 				BB8C9D0E1F2A3B4C5D6E7F8A /* ImportTab.swift */,
 				AF6A7B8C9D0E1F2A3B4C5D6E /* OverviewTab.swift */,
+				BD0E1F2A3B4C5D6E7F8A9B0C /* RepoTab.swift */,
+				BE1F2A3B4C5D6E7F8A9B0C1D /* DriftTab.swift */,
 				BC9D0E1F2A3B4C5D6E7F8A9B /* ReportsTab.swift */,
 			);
 			name = Tabs;
@@ -783,8 +789,10 @@
 				DB8C9D0E1F2A3B4C5D6E7F8A /* ImportTab.swift in Sources */,
 				520C2FB32B4FDB18314C6C5C /* MacMoverApp.swift in Sources */,
 				CD4E5F6A7B8C9D0E1F2A3B4C /* ManualTaskRow.swift in Sources */,
+				DE1F2A3B4C5D6E7F8A9B0C1D /* DriftTab.swift in Sources */,
 				CF6A7B8C9D0E1F2A3B4C5D6E /* OverviewTab.swift in Sources */,
 				CE5F6A7B8C9D0E1F2A3B4C5D /* ProgressOverlay.swift in Sources */,
+				DD0E1F2A3B4C5D6E7F8A9B0C /* RepoTab.swift in Sources */,
 				DC9D0E1F2A3B4C5D6E7F8A9B /* ReportsTab.swift in Sources */,
 				CC3D4E5F6A7B8C9D0E1F2A3B /* StatusBadge.swift in Sources */,
 			);

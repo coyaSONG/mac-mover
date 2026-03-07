@@ -13,6 +13,10 @@ struct ContentView: View {
                     .tabItem { Label("Repo", systemImage: "folder.badge.gearshape") }
                 DriftTab()
                     .tabItem { Label("Drift", systemImage: "arrow.left.and.right.righttriangle.left.righttriangle.right") }
+                ExportTab()
+                    .tabItem { Label("Export", systemImage: "square.and.arrow.up") }
+                ImportTab()
+                    .tabItem { Label("Import", systemImage: "square.and.arrow.down") }
                 ReportsTab()
                     .tabItem { Label("Reports", systemImage: "doc.text") }
             }
