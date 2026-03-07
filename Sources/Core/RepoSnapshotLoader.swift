@@ -1,3 +1,4 @@
+import CryptoKit
 import Foundation
 import SharedModels
 
@@ -187,24 +188,26 @@ public struct RepoSnapshotLoader: Sendable {
             let baseURL = root.appendingPathComponent(directory)
 
             let settingsURL = baseURL.appendingPathComponent("settings.json")
-            if fileSystem.fileExists(at: settingsURL) {
+            if fileSystem.fileExists(at: settingsURL),
+               let contentHash = contentHash(at: settingsURL) {
                 items.append(
                     WorkspaceItem(
                         category: .vscode,
                         identifier: "settings.json",
-                        value: .string("settings"),
+                        value: .string(contentHash),
                         details: ["relativePath": .string("\(directory)/settings.json")]
                     )
                 )
             }
 
             let keybindingsURL = baseURL.appendingPathComponent("keybindings.json")
-            if fileSystem.fileExists(at: keybindingsURL) {
+            if fileSystem.fileExists(at: keybindingsURL),
+               let contentHash = contentHash(at: keybindingsURL) {
                 items.append(
                     WorkspaceItem(
                         category: .vscode,
                         identifier: "keybindings.json",
-                        value: .string("keybindings"),
+                        value: .string(contentHash),
                         details: ["relativePath": .string("\(directory)/keybindings.json")]
                     )
                 )
@@ -218,11 +221,14 @@ public struct RepoSnapshotLoader: Sendable {
             }
 
             for snippetFile in snippetFiles {
+                guard let contentHash = contentHash(at: snippetFile) else {
+                    continue
+                }
                 items.append(
                     WorkspaceItem(
                         category: .vscode,
                         identifier: snippetFile.lastPathComponent,
-                        value: .string("snippet"),
+                        value: .string(contentHash),
                         details: ["relativePath": .string("\(directory)/snippets/\(snippetFile.lastPathComponent)")]
                     )
                 )
@@ -236,14 +242,16 @@ public struct RepoSnapshotLoader: Sendable {
         dotfileAllowlist.paths.compactMap { path in
             let relativePath = PathNormalizer.normalizedDotfileRelativePath(path)
             let fileURL = root.appendingPathComponent(relativePath)
-            guard fileSystem.fileExists(at: fileURL) else {
+            guard fileSystem.fileExists(at: fileURL),
+                  let contentHash = contentHash(at: fileURL)
+            else {
                 return nil
             }
 
             return WorkspaceItem(
                 category: .dotfiles,
                 identifier: path,
-                value: .string(relativePath),
+                value: .string(contentHash),
                 details: ["relativePath": .string(relativePath)]
             )
         }
@@ -262,11 +270,15 @@ public struct RepoSnapshotLoader: Sendable {
             guard let sourceRelativePath = chezmoiSourceRelativePath(for: targetRelativePath, at: root) else {
                 return nil
             }
+            let sourceURL = root.appendingPathComponent(sourceRelativePath)
+            guard let contentHash = contentHash(at: sourceURL) else {
+                return nil
+            }
 
             return WorkspaceItem(
                 category: .dotfiles,
                 identifier: path,
-                value: .string(targetRelativePath),
+                value: .string(contentHash),
                 details: ["relativePath": .string(sourceRelativePath)]
             )
         }
@@ -298,5 +310,14 @@ public struct RepoSnapshotLoader: Sendable {
         return candidates.first { candidate in
             fileSystem.fileExists(at: root.appendingPathComponent(candidate))
         }
+    }
+
+    private func contentHash(at url: URL) -> String? {
+        guard let data = try? fileSystem.readData(at: url) else {
+            return nil
+        }
+
+        let digest = SHA256.hash(data: data)
+        return digest.map { String(format: "%02x", $0) }.joined()
     }
 }

@@ -1,3 +1,4 @@
+import CryptoKit
 import Foundation
 import Testing
 @testable import SharedModels
@@ -99,4 +100,82 @@ struct DriftEngineTests {
         #expect(drift.first?.identifier == "settings.json")
         #expect(drift.first?.status == .missing)
     }
+
+    @Test
+    func classifiesModifiedDotfilesAndVSCodeFilesByContentHash() throws {
+        let root = URL(fileURLWithPath: "/tmp/dev-env")
+        let homeDirectory = "/Users/test"
+        let userDirectory = "\(homeDirectory)/Library/Application Support/Code/User"
+        let fileSystem = InMemoryFileSystem(
+            files: [
+                root.appendingPathComponent(".zshrc").path: Data("export PATH=/repo/bin:$PATH\n".utf8),
+                root.appendingPathComponent(".vscode/settings.json").path: Data("{\"editor.fontSize\":14}\n".utf8),
+                "\(homeDirectory)/.zshrc": Data("export PATH=/local/bin:$PATH\n".utf8),
+                "\(userDirectory)/settings.json": Data("{\"editor.fontSize\":16}\n".utf8)
+            ],
+            directories: [
+                root.path,
+                root.appendingPathComponent(".vscode").path,
+                homeDirectory,
+                userDirectory
+            ]
+        )
+        let workspace = ConnectedWorkspace(rootPath: root.path, detectedTools: [.plainDotfiles, .vscode])
+
+        let repo = try RepoSnapshotLoader(fileSystem: fileSystem).load(from: workspace)
+        let local = EnvironmentScanner(
+            runner: MockCommandRunner(),
+            fileSystem: fileSystem,
+            homeDirectory: homeDirectory
+        ).scan()
+
+        let drift = DriftEngine().compare(repo: repo, local: local)
+
+        #expect(drift.contains(where: { $0.category == .dotfiles && $0.identifier == "~/.zshrc" && $0.status == .modified }))
+        #expect(drift.contains(where: { $0.category == .vscode && $0.identifier == "settings.json" && $0.status == .modified }))
+    }
+
+    @Test
+    func environmentScannerCollectsToolVersionsAndVSCodeSnippets() {
+        let homeDirectory = "/Users/test"
+        let snippetsDirectory = "\(homeDirectory)/Library/Application Support/Code/User/snippets"
+        let runner = MockCommandRunner(stubs: [
+            .init(executable: "/usr/bin/env", arguments: ["which", "mise"], result: .success(.init(executable: "/usr/bin/env", arguments: ["which", "mise"], exitCode: 0, stdout: "/opt/homebrew/bin/mise\n", stderr: ""))),
+            .init(executable: "/usr/bin/env", arguments: ["mise", "current"], result: .success(.init(executable: "/usr/bin/env", arguments: ["mise", "current"], exitCode: 0, stdout: "node 22.1.0\npython 3.12.1\n", stderr: ""))),
+            .init(executable: "/usr/bin/env", arguments: ["which", "asdf"], result: .failure(MoverError.commandFailed(executable: "/usr/bin/env", arguments: ["which", "asdf"], code: 1, stderr: "missing"))),
+            .init(executable: "/usr/bin/env", arguments: ["which", "code"], result: .failure(MoverError.commandFailed(executable: "/usr/bin/env", arguments: ["which", "code"], code: 1, stderr: "missing")))
+        ])
+        let snippetContents = "{\"log\":{}}\n"
+        let fileSystem = InMemoryFileSystem(
+            files: [
+                "\(snippetsDirectory)/javascript.json": Data(snippetContents.utf8)
+            ],
+            directories: [
+                homeDirectory,
+                "\(homeDirectory)/Library",
+                "\(homeDirectory)/Library/Application Support",
+                "\(homeDirectory)/Library/Application Support/Code",
+                "\(homeDirectory)/Library/Application Support/Code/User",
+                snippetsDirectory
+            ]
+        )
+
+        let snapshot = EnvironmentScanner(
+            runner: runner,
+            fileSystem: fileSystem,
+            homeDirectory: homeDirectory
+        ).scan()
+
+        #expect(snapshot.items.contains(where: { $0.category == .toolVersions && $0.identifier == "node" && $0.value == .string("22.1.0") }))
+        #expect(snapshot.items.contains(where: { $0.category == .toolVersions && $0.identifier == "python" && $0.value == .string("3.12.1") }))
+
+        let snippet = snapshot.items.first(where: { $0.category == .vscode && $0.identifier == "javascript.json" })
+        #expect(snippet?.value == .string(sha256Hex(snippetContents)))
+        #expect(snippet?.details["path"] == .string("~/Library/Application Support/Code/User/snippets/javascript.json"))
+    }
+}
+
+private func sha256Hex(_ string: String) -> String {
+    let digest = SHA256.hash(data: Data(string.utf8))
+    return digest.map { String(format: "%02x", $0) }.joined()
 }

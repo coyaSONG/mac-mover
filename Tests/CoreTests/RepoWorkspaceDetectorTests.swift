@@ -1,3 +1,4 @@
+import CryptoKit
 import Foundation
 import Testing
 @testable import SharedModels
@@ -47,10 +48,13 @@ struct RepoWorkspaceDetectorTests {
 
         let snapshot = try RepoSnapshotLoader(fileSystem: fileSystem).load(from: workspace)
 
+        let zshrc = snapshot.items.first(where: { $0.category == .dotfiles && $0.identifier == "~/.zshrc" })
+        let starship = snapshot.items.first(where: { $0.category == .dotfiles && $0.identifier == "~/.config/starship.toml" })
+
         #expect(snapshot.items.contains(where: { $0.category == .homebrew && $0.identifier == "git" }))
         #expect(snapshot.items.contains(where: { $0.category == .homebrew && $0.identifier == "visual-studio-code" }))
-        #expect(snapshot.items.contains(where: { $0.category == .dotfiles && $0.identifier == "~/.zshrc" }))
-        #expect(snapshot.items.contains(where: { $0.category == .dotfiles && $0.identifier == "~/.config/starship.toml" }))
+        #expect(zshrc?.value == .string(sha256Hex("export PATH=/opt/homebrew/bin:$PATH\n")))
+        #expect(starship?.value == .string(sha256Hex("[character]\n")))
     }
 
     @Test
@@ -108,10 +112,15 @@ struct RepoWorkspaceDetectorTests {
 
         let snapshot = try RepoSnapshotLoader(fileSystem: fileSystem).load(from: workspace)
 
-        #expect(snapshot.items.contains(where: { $0.category == .vscode && $0.identifier == "settings.json" && $0.details["relativePath"] == .string(".vscode/settings.json") }))
-        #expect(snapshot.items.contains(where: { $0.category == .vscode && $0.identifier == "keybindings.json" && $0.details["relativePath"] == .string("vscode/keybindings.json") }))
-        #expect(snapshot.items.contains(where: { $0.category == .vscode && $0.identifier == "javascript.json" && $0.details["relativePath"] == .string(".vscode/snippets/javascript.json") }))
-        #expect(snapshot.items.contains(where: { $0.category == .vscode && $0.identifier == "python.json" && $0.details["relativePath"] == .string("vscode/snippets/python.json") }))
+        let settings = snapshot.items.first(where: { $0.category == .vscode && $0.identifier == "settings.json" && $0.details["relativePath"] == .string(".vscode/settings.json") })
+        let keybindings = snapshot.items.first(where: { $0.category == .vscode && $0.identifier == "keybindings.json" && $0.details["relativePath"] == .string("vscode/keybindings.json") })
+        let javascriptSnippet = snapshot.items.first(where: { $0.category == .vscode && $0.identifier == "javascript.json" && $0.details["relativePath"] == .string(".vscode/snippets/javascript.json") })
+        let pythonSnippet = snapshot.items.first(where: { $0.category == .vscode && $0.identifier == "python.json" && $0.details["relativePath"] == .string("vscode/snippets/python.json") })
+
+        #expect(settings?.value == .string(sha256Hex("{\"editor.fontSize\": 14}\n")))
+        #expect(keybindings?.value == .string(sha256Hex("[{\"key\":\"cmd+s\"}]\n")))
+        #expect(javascriptSnippet?.value == .string(sha256Hex("{\"log\":{}}\n")))
+        #expect(pythonSnippet?.value == .string(sha256Hex("{\"print\":{}}\n")))
     }
 
     @Test
@@ -140,11 +149,16 @@ struct RepoWorkspaceDetectorTests {
         let zprofile = snapshot.items.first(where: { $0.category == .dotfiles && $0.identifier == "~/.zprofile" })
         let starship = snapshot.items.first(where: { $0.category == .dotfiles && $0.identifier == "~/.config/starship.toml" })
 
-        #expect(zshrc?.value == .string(".zshrc"))
+        #expect(zshrc?.value == .string(sha256Hex("export PATH=/opt/homebrew/bin:$PATH\n")))
         #expect(zshrc?.details["relativePath"] == .string("dot_zshrc"))
-        #expect(zprofile?.value == .string(".zprofile"))
+        #expect(zprofile?.value == .string(sha256Hex("eval \"$(mise activate zsh)\"\n")))
         #expect(zprofile?.details["relativePath"] == .string("private_dot_zprofile"))
-        #expect(starship?.value == .string(".config/starship.toml"))
+        #expect(starship?.value == .string(sha256Hex("[character]\n")))
         #expect(starship?.details["relativePath"] == .string("dot_config/starship.toml"))
     }
+}
+
+private func sha256Hex(_ string: String) -> String {
+    let digest = SHA256.hash(data: Data(string.utf8))
+    return digest.map { String(format: "%02x", $0) }.joined()
 }

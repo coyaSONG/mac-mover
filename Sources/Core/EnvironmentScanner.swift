@@ -1,3 +1,4 @@
+import CryptoKit
 import Foundation
 import SharedModels
 
@@ -23,6 +24,7 @@ public struct EnvironmentScanner: Sendable {
         var items: [WorkspaceItem] = []
         items.append(contentsOf: scanHomebrew())
         items.append(contentsOf: scanDotfiles())
+        items.append(contentsOf: scanToolVersions())
         items.append(contentsOf: scanGitGlobal())
         items.append(contentsOf: scanVSCode())
 
@@ -67,17 +69,35 @@ public struct EnvironmentScanner: Sendable {
         dotfileAllowlist.paths.compactMap { path in
             let absolutePath = PathNormalizer.expandTilde(path, homeDirectory: homeDirectory)
             let url = URL(fileURLWithPath: absolutePath)
-            guard fileSystem.fileExists(at: url) else {
+            guard fileSystem.fileExists(at: url),
+                  let contentHash = contentHash(at: url)
+            else {
                 return nil
             }
 
             return WorkspaceItem(
                 category: .dotfiles,
                 identifier: path,
-                value: .string(PathNormalizer.normalizedDotfileRelativePath(path, homeDirectory: homeDirectory)),
+                value: .string(contentHash),
                 details: ["path": .string(path)]
             )
         }
+    }
+
+    private func scanToolVersions() -> [WorkspaceItem] {
+        var items: [WorkspaceItem] = []
+
+        if runner.commandExists("mise"),
+           let output = try? runner.run(executable: "/usr/bin/env", arguments: ["mise", "current"]).stdout {
+            items.append(contentsOf: parseToolVersions(output: output, source: "mise"))
+        }
+
+        if runner.commandExists("asdf"),
+           let output = try? runner.run(executable: "/usr/bin/env", arguments: ["asdf", "current"]).stdout {
+            items.append(contentsOf: parseToolVersions(output: output, source: "asdf"))
+        }
+
+        return items
     }
 
     private func scanGitGlobal() -> [WorkspaceItem] {
@@ -112,27 +132,48 @@ public struct EnvironmentScanner: Sendable {
             .appendingPathComponent("Library/Application Support/Code/User")
 
         let settingsURL = userDirectory.appendingPathComponent("settings.json")
-        if fileSystem.fileExists(at: settingsURL) {
+        if fileSystem.fileExists(at: settingsURL),
+           let contentHash = contentHash(at: settingsURL) {
             items.append(
                 WorkspaceItem(
                     category: .vscode,
                     identifier: "settings.json",
-                    value: .string("settings"),
+                    value: .string(contentHash),
                     details: ["path": .string("~/Library/Application Support/Code/User/settings.json")]
                 )
             )
         }
 
         let keybindingsURL = userDirectory.appendingPathComponent("keybindings.json")
-        if fileSystem.fileExists(at: keybindingsURL) {
+        if fileSystem.fileExists(at: keybindingsURL),
+           let contentHash = contentHash(at: keybindingsURL) {
             items.append(
                 WorkspaceItem(
                     category: .vscode,
                     identifier: "keybindings.json",
-                    value: .string("keybindings"),
+                    value: .string(contentHash),
                     details: ["path": .string("~/Library/Application Support/Code/User/keybindings.json")]
                 )
             )
+        }
+
+        let snippetsDirectory = userDirectory.appendingPathComponent("snippets")
+        if fileSystem.fileExists(at: snippetsDirectory),
+           let snippetFiles = try? fileSystem.listDirectory(at: snippetsDirectory) {
+            for snippetFile in snippetFiles {
+                guard let contentHash = contentHash(at: snippetFile) else {
+                    continue
+                }
+
+                items.append(
+                    WorkspaceItem(
+                        category: .vscode,
+                        identifier: snippetFile.lastPathComponent,
+                        value: .string(contentHash),
+                        details: ["path": .string("~/Library/Application Support/Code/User/snippets/\(snippetFile.lastPathComponent)")]
+                    )
+                )
+            }
         }
 
         guard runner.commandExists("code"),
@@ -159,5 +200,32 @@ public struct EnvironmentScanner: Sendable {
 
         items.append(contentsOf: extensions)
         return items
+    }
+
+    private func parseToolVersions(output: String, source: String) -> [WorkspaceItem] {
+        output
+            .split(whereSeparator: \.isNewline)
+            .compactMap { line -> WorkspaceItem? in
+                let parts = line.split(whereSeparator: \.isWhitespace).map(String.init)
+                guard parts.count >= 2 else {
+                    return nil
+                }
+
+                return WorkspaceItem(
+                    category: .toolVersions,
+                    identifier: parts[0],
+                    value: .string(parts[1]),
+                    details: ["source": .string(source)]
+                )
+            }
+    }
+
+    private func contentHash(at url: URL) -> String? {
+        guard let data = try? fileSystem.readData(at: url) else {
+            return nil
+        }
+
+        let digest = SHA256.hash(data: data)
+        return digest.map { String(format: "%02x", $0) }.joined()
     }
 }
