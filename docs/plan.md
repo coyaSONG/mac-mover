@@ -1,5 +1,13 @@
 # Implementation Plan
 
+## Current Planning Focus
+
+- Product direction is shifting from a bundle-first migration app to a repo-first developer environment control tower.
+- Approved design doc: `docs/plans/2026-03-07-dev-env-control-tower-design.md`
+- Detailed implementation plan: `docs/plans/2026-03-07-dev-env-control-tower-implementation.md`
+- Sync model: `repo-first + drift detection`
+- Near-term build target: add repo adapters, local environment scanning, drift/apply/promote flows, and updated reports without breaking the current build.
+
 ## Goal
 
 Deliver Mac Dev Env Mover incrementally while keeping scope limited to the v1 categories and preserving local-only safety defaults.
