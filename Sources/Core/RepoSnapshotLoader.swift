@@ -36,6 +36,7 @@ public struct RepoSnapshotLoader: Sendable {
         }
 
         items.append(contentsOf: loadVSCodeFiles(at: root))
+        items.append(contentsOf: loadChezmoiDotfiles(at: root, workspace: workspace))
         items.append(contentsOf: loadAllowlistedDotfiles(at: root))
 
         return RepoSnapshot(
@@ -245,6 +246,57 @@ public struct RepoSnapshotLoader: Sendable {
                 value: .string(relativePath),
                 details: ["relativePath": .string(relativePath)]
             )
+        }
+    }
+
+    private func loadChezmoiDotfiles(at root: URL, workspace: ConnectedWorkspace) -> [WorkspaceItem] {
+        guard workspace.detectedTools.contains(.chezmoi)
+            || fileSystem.fileExists(at: root.appendingPathComponent(".chezmoiroot"))
+            || fileSystem.fileExists(at: root.appendingPathComponent(".chezmoi.toml"))
+        else {
+            return []
+        }
+
+        return dotfileAllowlist.paths.compactMap { path in
+            let targetRelativePath = PathNormalizer.normalizedDotfileRelativePath(path)
+            guard let sourceRelativePath = chezmoiSourceRelativePath(for: targetRelativePath, at: root) else {
+                return nil
+            }
+
+            return WorkspaceItem(
+                category: .dotfiles,
+                identifier: path,
+                value: .string(targetRelativePath),
+                details: ["relativePath": .string(sourceRelativePath)]
+            )
+        }
+    }
+
+    private func chezmoiSourceRelativePath(for targetRelativePath: String, at root: URL) -> String? {
+        let standardRelativePath = targetRelativePath
+            .split(separator: "/", omittingEmptySubsequences: false)
+            .enumerated()
+            .map { index, component in
+                let name = String(component)
+                guard name.hasPrefix(".") else {
+                    return name
+                }
+
+                let transformed = "dot_" + name.dropFirst()
+                if index == 0 {
+                    return String(transformed)
+                }
+                return String(transformed)
+            }
+            .joined(separator: "/")
+
+        let candidates = [
+            standardRelativePath,
+            "private_" + standardRelativePath
+        ]
+
+        return candidates.first { candidate in
+            fileSystem.fileExists(at: root.appendingPathComponent(candidate))
         }
     }
 }

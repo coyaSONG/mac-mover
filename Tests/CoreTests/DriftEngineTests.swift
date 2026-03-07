@@ -50,4 +50,53 @@ struct DriftEngineTests {
         #expect(drift.contains(where: { $0.identifier == "~/.zshrc" && $0.status == .modified }))
         #expect(drift.contains(where: { $0.identifier == "git" && $0.status == .extra }))
     }
+
+    @Test
+    func ignoresNonSemanticDetailDifferencesForMatchingItems() {
+        let repo = RepoSnapshot(items: [
+            WorkspaceItem(
+                category: .dotfiles,
+                identifier: "~/.zshrc",
+                value: .string(".zshrc"),
+                details: ["relativePath": .string(".zshrc")]
+            )
+        ])
+        let local = EnvironmentSnapshot(items: [
+            WorkspaceItem(
+                category: .dotfiles,
+                identifier: "~/.zshrc",
+                value: .string(".zshrc"),
+                details: ["path": .string("~/.zshrc")]
+            )
+        ])
+
+        let drift = DriftEngine().compare(repo: repo, local: local)
+
+        #expect(!drift.contains(where: { $0.identifier == "~/.zshrc" && $0.status == .modified }))
+    }
+
+    @Test
+    func toleratesDuplicateCategoryIdentifierPairs() {
+        let repo = RepoSnapshot(items: [
+            WorkspaceItem(
+                category: .vscode,
+                identifier: "settings.json",
+                value: .string("settings"),
+                details: ["relativePath": .string(".vscode/settings.json")]
+            ),
+            WorkspaceItem(
+                category: .vscode,
+                identifier: "settings.json",
+                value: .string("settings"),
+                details: ["relativePath": .string("vscode/settings.json")]
+            )
+        ])
+        let local = EnvironmentSnapshot(items: [])
+
+        let drift = DriftEngine().compare(repo: repo, local: local)
+
+        #expect(drift.count == 1)
+        #expect(drift.first?.identifier == "settings.json")
+        #expect(drift.first?.status == .missing)
+    }
 }

@@ -113,4 +113,38 @@ struct RepoWorkspaceDetectorTests {
         #expect(snapshot.items.contains(where: { $0.category == .vscode && $0.identifier == "javascript.json" && $0.details["relativePath"] == .string(".vscode/snippets/javascript.json") }))
         #expect(snapshot.items.contains(where: { $0.category == .vscode && $0.identifier == "python.json" && $0.details["relativePath"] == .string("vscode/snippets/python.json") }))
     }
+
+    @Test
+    func loadsAllowlistedChezmoiDotfilesIntoSnapshot() throws {
+        let root = URL(fileURLWithPath: "/tmp/dev-env")
+        let fileSystem = InMemoryFileSystem(
+            files: [
+                root.appendingPathComponent(".chezmoiroot").path: Data(),
+                root.appendingPathComponent("dot_zshrc").path: Data("export PATH=/opt/homebrew/bin:$PATH\n".utf8),
+                root.appendingPathComponent("private_dot_zprofile").path: Data("eval \"$(mise activate zsh)\"\n".utf8),
+                root.appendingPathComponent("dot_config/starship.toml").path: Data("[character]\n".utf8)
+            ],
+            directories: [
+                root.path,
+                root.appendingPathComponent("dot_config").path
+            ]
+        )
+        let workspace = ConnectedWorkspace(
+            rootPath: root.path,
+            detectedTools: [.chezmoi]
+        )
+
+        let snapshot = try RepoSnapshotLoader(fileSystem: fileSystem).load(from: workspace)
+
+        let zshrc = snapshot.items.first(where: { $0.category == .dotfiles && $0.identifier == "~/.zshrc" })
+        let zprofile = snapshot.items.first(where: { $0.category == .dotfiles && $0.identifier == "~/.zprofile" })
+        let starship = snapshot.items.first(where: { $0.category == .dotfiles && $0.identifier == "~/.config/starship.toml" })
+
+        #expect(zshrc?.value == .string(".zshrc"))
+        #expect(zshrc?.details["relativePath"] == .string("dot_zshrc"))
+        #expect(zprofile?.value == .string(".zprofile"))
+        #expect(zprofile?.details["relativePath"] == .string("private_dot_zprofile"))
+        #expect(starship?.value == .string(".config/starship.toml"))
+        #expect(starship?.details["relativePath"] == .string("dot_config/starship.toml"))
+    }
 }
