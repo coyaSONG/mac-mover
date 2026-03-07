@@ -5,3 +5,7 @@
 DerivedData/
 *.xcworkspace/xcuserdata/
 *.xcodeproj/xcuserdata/
+
+# Generated local artifacts should stay out of git.
+SampleExportBundle/logs/
+SampleExportBundle/reports/

@@ -7,7 +7,7 @@
 - Detailed implementation plan: `docs/plans/2026-03-07-dev-env-control-tower-implementation.md`
 - Sync model: `repo-first + drift detection`
 - Recently completed: repo adapters, local environment scanning, drift/apply/promote flows, workspace reporting, AppState/UI shell reframe, and Xcode project registration for new sources.
-- Near-term build target: finish docs/sample artifact alignment and then run full verification for the repo-first control tower baseline with legacy bundle compatibility intact.
+- Near-term cleanup target: keep only reproducible sample bundle fixture inputs tracked in git, move generated logs and reports to ignored local artifacts, and align the README with that policy.
 
 ## Goal
 
