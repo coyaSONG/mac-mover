@@ -1,4 +1,5 @@
 import Foundation
+import Localization
 import SharedModels
 import Core
 
@@ -17,13 +18,16 @@ public struct WorkspacePromoteResult: Sendable {
 public struct WorkspacePromoteCoordinator {
     private let fileSystem: FileSysteming
     private let manualTaskEngine: ManualTaskEngine
+    private let locale: Locale?
 
     public init(
         fileSystem: FileSysteming = LocalFileSystem(),
-        manualTaskEngine: ManualTaskEngine = ManualTaskEngine()
+        manualTaskEngine: ManualTaskEngine = ManualTaskEngine(),
+        locale: Locale? = nil
     ) {
         self.fileSystem = fileSystem
-        self.manualTaskEngine = manualTaskEngine
+        self.manualTaskEngine = manualTaskEngine.locale == locale ? manualTaskEngine : ManualTaskEngine(locale: locale)
+        self.locale = locale
     }
 
     public func promote(
@@ -53,7 +57,7 @@ public struct WorkspacePromoteCoordinator {
                         id: "workspace.promote.\(selection.identifier)",
                         title: selection.identifier,
                         status: .skipped,
-                        detail: "category not yet supported by workspace promote"
+                        detail: L10n.string(.workspacePromoteUnsupportedCategory, locale: locale)
                     )
                 )
                 manualTasks.append(manualTaskEngine.taskForUnsupportedFile(selection.identifier))
@@ -68,7 +72,7 @@ public struct WorkspacePromoteCoordinator {
                         id: "workspace.promote.\(selection.identifier)",
                         title: selection.identifier,
                         status: .skipped,
-                        detail: "secret policy requires manual transfer"
+                        detail: L10n.string(.workspacePromoteSecretManualTransfer, locale: locale)
                     )
                 )
                 manualTasks.append(manualTaskEngine.taskForExcludedSecret(selection.identifier))
@@ -81,7 +85,7 @@ public struct WorkspacePromoteCoordinator {
                         id: "workspace.promote.\(selection.identifier)",
                         title: selection.identifier,
                         status: .skipped,
-                        detail: "missing local metadata for selected item"
+                        detail: L10n.string(.workspacePromoteMissingLocalMetadata, locale: locale)
                     )
                 )
                 continue
@@ -103,7 +107,7 @@ public struct WorkspacePromoteCoordinator {
                         id: "workspace.promote.\(selection.identifier)",
                         title: selection.identifier,
                         status: .success,
-                        detail: "staged candidate at \(destinationURL.path)"
+                        detail: L10n.format(.workspacePromoteStagedCandidate, locale: locale, destinationURL.path)
                     )
                 )
             } catch {
@@ -122,7 +126,7 @@ public struct WorkspacePromoteCoordinator {
             stagingDirectoryURL: stagingRoot,
             stagedFiles: stagedFiles,
             report: OperationReport(
-                title: "Workspace Promote Summary",
+                title: L10n.string(.reportWorkspacePromoteSummaryTitle, locale: locale),
                 generatedAt: Date(),
                 successes: successes,
                 failures: failures,

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>overview.drift_items.count</key>
+    <dict>
+        <key>NSStringLocalizedFormatKey</key>
+        <string>%#@drift_items@</string>
+        <key>drift_items</key>
+        <dict>
+            <key>NSStringFormatSpecTypeKey</key>
+            <string>NSStringPluralRuleType</string>
+            <key>NSStringFormatValueTypeKey</key>
+            <string>ld</string>
+            <key>one</key>
+            <string>%ld drift item</string>
+            <key>other</key>
+            <string>%ld drift items</string>
+        </dict>
+    </dict>
+    <key>workspace.detected_tools.count</key>
+    <dict>
+        <key>NSStringLocalizedFormatKey</key>
+        <string>%#@tools@</string>
+        <key>tools</key>
+        <dict>
+            <key>NSStringFormatSpecTypeKey</key>
+            <string>NSStringPluralRuleType</string>
+            <key>NSStringFormatValueTypeKey</key>
+            <string>ld</string>
+            <key>one</key>
+            <string>%ld tool detected</string>
+            <key>other</key>
+            <string>%ld tools detected</string>
+        </dict>
+    </dict>
+</dict>
+</plist>

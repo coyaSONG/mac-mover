@@ -1,4 +1,5 @@
 import Foundation
+import Localization
 import SharedModels
 import Core
 
@@ -16,15 +17,18 @@ public struct WorkspaceApplyCoordinator {
     private let fileSystem: FileSysteming
     private let fileRestorer: FileRestorer
     private let manualTaskEngine: ManualTaskEngine
+    private let locale: Locale?
 
     public init(
         fileSystem: FileSysteming = LocalFileSystem(),
         fileRestorer: FileRestorer? = nil,
-        manualTaskEngine: ManualTaskEngine = ManualTaskEngine()
+        manualTaskEngine: ManualTaskEngine = ManualTaskEngine(),
+        locale: Locale? = nil
     ) {
         self.fileSystem = fileSystem
         self.fileRestorer = fileRestorer ?? FileRestorer(fileSystem: fileSystem)
-        self.manualTaskEngine = manualTaskEngine
+        self.manualTaskEngine = manualTaskEngine.locale == locale ? manualTaskEngine : ManualTaskEngine(locale: locale)
+        self.locale = locale
     }
 
     public func apply(
@@ -51,7 +55,7 @@ public struct WorkspaceApplyCoordinator {
                         id: "workspace.apply.\(selection.identifier)",
                         title: selection.identifier,
                         status: .skipped,
-                        detail: "category not yet supported by workspace apply"
+                        detail: L10n.string(.workspaceApplyUnsupportedCategory, locale: locale)
                     )
                 )
                 manualTasks.append(manualTaskEngine.taskForUnsupportedFile(selection.identifier))
@@ -64,7 +68,7 @@ public struct WorkspaceApplyCoordinator {
                         id: "workspace.apply.\(selection.identifier)",
                         title: selection.identifier,
                         status: .skipped,
-                        detail: "secret policy requires manual transfer"
+                        detail: L10n.string(.workspaceApplySecretManualTransfer, locale: locale)
                     )
                 )
                 manualTasks.append(manualTaskEngine.taskForExcludedSecret(selection.identifier))
@@ -78,7 +82,7 @@ public struct WorkspaceApplyCoordinator {
                         id: "workspace.apply.\(selection.identifier)",
                         title: selection.identifier,
                         status: .skipped,
-                        detail: "missing repo metadata for selected item"
+                        detail: L10n.string(.workspaceApplyMissingRepoMetadata, locale: locale)
                     )
                 )
                 continue
@@ -101,7 +105,7 @@ public struct WorkspaceApplyCoordinator {
                         id: "workspace.apply.\(selection.identifier)",
                         title: selection.identifier,
                         status: .success,
-                        detail: "applied from workspace"
+                        detail: L10n.string(.workspaceApplyAppliedFromWorkspace, locale: locale)
                     )
                 )
             } catch {
@@ -118,7 +122,7 @@ public struct WorkspaceApplyCoordinator {
 
         return WorkspaceApplyResult(
             report: OperationReport(
-                title: "Workspace Apply Summary",
+                title: L10n.string(.reportWorkspaceApplySummaryTitle, locale: locale),
                 generatedAt: timestamp,
                 successes: successes,
                 failures: failures,

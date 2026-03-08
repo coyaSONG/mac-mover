@@ -1,9 +1,12 @@
 import SwiftUI
+#if canImport(Localization)
+import Localization
+#endif
 
 struct ImportTab: View {
     var body: some View {
-        CardView(title: "Legacy Import", icon: "shippingbox") {
-            Text("Legacy bundle import and verify flows still exist behind AppState for compatibility, but the shell now surfaces repo control tower workflows first.")
+        CardView(title: L10n.string(.importLegacyTitle), icon: "shippingbox") {
+            Text(L10n.string(.importLegacyDescription))
         }
     }
 }

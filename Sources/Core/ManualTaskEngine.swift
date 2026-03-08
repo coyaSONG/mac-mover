@@ -1,15 +1,20 @@
 import Foundation
+import Localization
 import SharedModels
 
 public struct ManualTaskEngine {
-    public init() {}
+    public let locale: Locale?
+
+    public init(locale: Locale? = nil) {
+        self.locale = locale
+    }
 
     public func taskForMissingBrew() -> ManualTask {
         ManualTask(
             id: "manual.install.homebrew",
-            title: "Homebrew installation required",
-            reason: "Homebrew is not installed on this machine.",
-            action: "Install Homebrew from https://brew.sh and rerun import.",
+            title: L10n.string(.manualTaskMissingBrewTitle, locale: locale),
+            reason: L10n.string(.manualTaskMissingBrewReason, locale: locale),
+            action: L10n.string(.manualTaskMissingBrewAction, locale: locale),
             blocking: true
         )
     }
@@ -17,9 +22,9 @@ public struct ManualTaskEngine {
     public func taskForMissingCodeCLI() -> ManualTask {
         ManualTask(
             id: "manual.enable.code-cli",
-            title: "VS Code CLI (code) required",
-            reason: "`code` CLI is unavailable, so extension restore cannot run automatically.",
-            action: "In VS Code, run: Shell Command: Install code command in PATH.",
+            title: L10n.string(.manualTaskMissingCodeCLITitle, locale: locale),
+            reason: L10n.string(.manualTaskMissingCodeCLIReason, locale: locale),
+            action: L10n.string(.manualTaskMissingCodeCLIAction, locale: locale),
             blocking: false
         )
     }
@@ -27,9 +32,9 @@ public struct ManualTaskEngine {
     public func taskForArchitectureMismatch(source: MachineArchitecture, target: MachineArchitecture) -> ManualTask {
         ManualTask(
             id: "manual.arch.mismatch",
-            title: "Architecture mismatch",
-            reason: "Export machine (\(source.rawValue)) differs from current machine (\(target.rawValue)).",
-            action: "If compatibility issues occur, reinstall affected packages manually and check Rosetta if needed.",
+            title: L10n.string(.manualTaskArchitectureMismatchTitle, locale: locale),
+            reason: L10n.format(.manualTaskArchitectureMismatchReason, locale: locale, source.rawValue, target.rawValue),
+            action: L10n.string(.manualTaskArchitectureMismatchAction, locale: locale),
             blocking: false
         )
     }
@@ -37,9 +42,9 @@ public struct ManualTaskEngine {
     public func taskForExcludedSecret(_ path: String) -> ManualTask {
         ManualTask(
             id: "manual.secret.\(path.replacingOccurrences(of: "/", with: "_"))",
-            title: "Secret item requires manual transfer",
-            reason: "Security policy excluded \(path) from automatic transfer.",
-            action: "Transfer it manually via a secure channel if needed.",
+            title: L10n.string(.manualTaskExcludedSecretTitle, locale: locale),
+            reason: L10n.format(.manualTaskExcludedSecretReason, locale: locale, path),
+            action: L10n.string(.manualTaskExcludedSecretAction, locale: locale),
             blocking: false
         )
     }
@@ -47,9 +52,9 @@ public struct ManualTaskEngine {
     public func taskForUnsupportedFile(_ path: String) -> ManualTask {
         ManualTask(
             id: "manual.unsupported.\(path.replacingOccurrences(of: "/", with: "_"))",
-            title: "Unsupported file",
-            reason: "Item is outside v1 support scope: \(path)",
-            action: "Review and transfer this file manually.",
+            title: L10n.string(.manualTaskUnsupportedFileTitle, locale: locale),
+            reason: L10n.format(.manualTaskUnsupportedFileReason, locale: locale, path),
+            action: L10n.string(.manualTaskUnsupportedFileAction, locale: locale),
             blocking: false
         )
     }
@@ -57,9 +62,9 @@ public struct ManualTaskEngine {
     public func taskForOverwriteConfirmation(_ path: String) -> ManualTask {
         ManualTask(
             id: "manual.overwrite.\(path.replacingOccurrences(of: "/", with: "_"))",
-            title: "Overwrite backup created",
-            reason: "Existing file detected; backup will be created before overwrite: \(path)",
-            action: "If needed, restore from the generated .bak file.",
+            title: L10n.string(.manualTaskOverwriteConfirmationTitle, locale: locale),
+            reason: L10n.format(.manualTaskOverwriteConfirmationReason, locale: locale, path),
+            action: L10n.string(.manualTaskOverwriteConfirmationAction, locale: locale),
             blocking: false
         )
     }

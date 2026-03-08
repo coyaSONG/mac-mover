@@ -1,4 +1,5 @@
 import Foundation
+import Localization
 import SharedModels
 import Core
 
@@ -7,17 +8,20 @@ struct VSCodeExporter {
     private let fileSystem: FileSysteming
     private let manualTaskEngine: ManualTaskEngine
     private let homeDirectory: String
+    private let locale: Locale?
 
     init(
         runner: CommandRunning,
         fileSystem: FileSysteming,
         manualTaskEngine: ManualTaskEngine,
-        homeDirectory: String
+        homeDirectory: String,
+        locale: Locale? = nil
     ) {
         self.runner = runner
         self.fileSystem = fileSystem
         self.manualTaskEngine = manualTaskEngine
         self.homeDirectory = homeDirectory
+        self.locale = locale
     }
 
     func export(to layout: BundleLayout) -> ComponentExportResult {
@@ -33,7 +37,7 @@ struct VSCodeExporter {
                     ManifestItem(
                         id: "vscode.settings",
                         kind: .vscodeSettings,
-                        title: "VS Code settings",
+                        title: L10n.string(.exportVSCodeSettingsTitle, locale: locale),
                         restorePhase: .ide,
                         source: ItemSource(path: "~/Library/Application Support/Code/User/settings.json"),
                         payload: ["relativePath": .string("files/vscode/settings.json")],
@@ -43,12 +47,12 @@ struct VSCodeExporter {
                         notes: []
                     )
                 )
-                result.successes.append(StepResult(id: "vscode.settings", title: "VS Code settings", status: .success, detail: "settings.json exported"))
+                result.successes.append(StepResult(id: "vscode.settings", title: L10n.string(.exportVSCodeSettingsTitle, locale: locale), status: .success, detail: L10n.string(.exportVSCodeSettingsExported, locale: locale)))
             } catch {
-                result.failures.append(StepResult(id: "vscode.settings", title: "VS Code settings", status: .failed, detail: error.localizedDescription))
+                result.failures.append(StepResult(id: "vscode.settings", title: L10n.string(.exportVSCodeSettingsTitle, locale: locale), status: .failed, detail: error.localizedDescription))
             }
         } else {
-            result.skipped.append(StepResult(id: "vscode.settings", title: "VS Code settings", status: .skipped, detail: "settings.json not found"))
+            result.skipped.append(StepResult(id: "vscode.settings", title: L10n.string(.exportVSCodeSettingsTitle, locale: locale), status: .skipped, detail: L10n.string(.exportVSCodeSettingsNotFound, locale: locale)))
         }
 
         let keybindingsURL = vscodeUserDir.appendingPathComponent("keybindings.json")
@@ -59,7 +63,7 @@ struct VSCodeExporter {
                     ManifestItem(
                         id: "vscode.keybindings",
                         kind: .vscodeSettings,
-                        title: "VS Code keybindings",
+                        title: L10n.string(.exportVSCodeKeybindingsTitle, locale: locale),
                         restorePhase: .ide,
                         source: ItemSource(path: "~/Library/Application Support/Code/User/keybindings.json"),
                         payload: ["relativePath": .string("files/vscode/keybindings.json")],
@@ -69,9 +73,9 @@ struct VSCodeExporter {
                         notes: []
                     )
                 )
-                result.successes.append(StepResult(id: "vscode.keybindings", title: "VS Code keybindings", status: .success, detail: "keybindings.json exported"))
+                result.successes.append(StepResult(id: "vscode.keybindings", title: L10n.string(.exportVSCodeKeybindingsTitle, locale: locale), status: .success, detail: L10n.string(.exportVSCodeKeybindingsExported, locale: locale)))
             } catch {
-                result.failures.append(StepResult(id: "vscode.keybindings", title: "VS Code keybindings", status: .failed, detail: error.localizedDescription))
+                result.failures.append(StepResult(id: "vscode.keybindings", title: L10n.string(.exportVSCodeKeybindingsTitle, locale: locale), status: .failed, detail: error.localizedDescription))
             }
         }
 
@@ -88,7 +92,7 @@ struct VSCodeExporter {
                     ManifestItem(
                         id: "vscode.snippets",
                         kind: .vscodeSettings,
-                        title: "VS Code snippets",
+                        title: L10n.string(.exportVSCodeSnippetsTitle, locale: locale),
                         restorePhase: .ide,
                         source: ItemSource(path: "~/Library/Application Support/Code/User/snippets"),
                         payload: ["relativePath": .string("files/vscode/snippets")],
@@ -98,15 +102,15 @@ struct VSCodeExporter {
                         notes: []
                     )
                 )
-                result.successes.append(StepResult(id: "vscode.snippets", title: "VS Code snippets", status: .success, detail: "\(snippetFiles.count) files exported"))
+                result.successes.append(StepResult(id: "vscode.snippets", title: L10n.string(.exportVSCodeSnippetsTitle, locale: locale), status: .success, detail: L10n.format(.exportVSCodeSnippetsFilesExported, locale: locale, snippetFiles.count)))
             } catch {
-                result.failures.append(StepResult(id: "vscode.snippets", title: "VS Code snippets", status: .failed, detail: error.localizedDescription))
+                result.failures.append(StepResult(id: "vscode.snippets", title: L10n.string(.exportVSCodeSnippetsTitle, locale: locale), status: .failed, detail: error.localizedDescription))
             }
         }
 
         guard runner.commandExists("code") else {
             result.manualTasks.append(manualTaskEngine.taskForMissingCodeCLI())
-            result.skipped.append(StepResult(id: "vscode.extensions", title: "VS Code extensions", status: .skipped, detail: "code CLI not found"))
+            result.skipped.append(StepResult(id: "vscode.extensions", title: L10n.string(.exportVSCodeExtensionsTitle, locale: locale), status: .skipped, detail: L10n.string(.exportVSCodeCodeCLINotFound, locale: locale)))
             return result
         }
 
@@ -132,9 +136,9 @@ struct VSCodeExporter {
                     )
                 )
             }
-            result.successes.append(StepResult(id: "vscode.extensions", title: "VS Code extensions", status: .success, detail: "\(lines.count) extensions exported"))
+            result.successes.append(StepResult(id: "vscode.extensions", title: L10n.string(.exportVSCodeExtensionsTitle, locale: locale), status: .success, detail: L10n.format(.exportVSCodeExtensionsExported, locale: locale, lines.count)))
         } catch {
-            result.failures.append(StepResult(id: "vscode.extensions", title: "VS Code extensions", status: .failed, detail: error.localizedDescription))
+            result.failures.append(StepResult(id: "vscode.extensions", title: L10n.string(.exportVSCodeExtensionsTitle, locale: locale), status: .failed, detail: error.localizedDescription))
         }
 
         return result

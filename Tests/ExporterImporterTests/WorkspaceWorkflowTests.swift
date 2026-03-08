@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+@testable import Localization
 @testable import SharedModels
 @testable import Core
 @testable import Exporters
@@ -320,5 +321,78 @@ struct WorkspaceWorkflowTests {
         #expect(!result.stagedFiles.contains(stagedNpmrc))
         #expect(result.report.skipped.contains(where: { $0.id.contains("workspace.promote.~/.npmrc") }))
         #expect(result.report.manualTasks.contains(where: { $0.id.contains("manual.secret") && $0.reason.contains(".npmrc") }))
+    }
+
+    @Test
+    func workspaceApplyAndPromoteCanRenderKoreanReports() throws {
+        let homeDirectory = "/Users/test"
+        let workspaceRoot = URL(fileURLWithPath: "/tmp/dev-env-repo")
+        let stagingRoot = URL(fileURLWithPath: "/tmp/dev-env-staging")
+        let localDotfile = URL(fileURLWithPath: "\(homeDirectory)/.zshrc")
+        let locale = Locale(identifier: "ko")
+        let fileSystem = InMemoryFileSystem(
+            files: [
+                workspaceRoot.appendingPathComponent(".zshrc").path: Data("repo-value\n".utf8),
+                localDotfile.path: Data("local-value\n".utf8)
+            ],
+            directories: [
+                workspaceRoot.path,
+                stagingRoot.path,
+                homeDirectory
+            ]
+        )
+        let workspace = ConnectedWorkspace(rootPath: workspaceRoot.path, detectedTools: [.plainDotfiles])
+        let repoSnapshot = RepoSnapshot(items: [
+            WorkspaceItem(
+                category: .dotfiles,
+                identifier: "~/.zshrc",
+                value: .string("repo-hash"),
+                details: ["relativePath": .string(".zshrc")]
+            )
+        ])
+        let environmentSnapshot = EnvironmentSnapshot(items: [
+            WorkspaceItem(
+                category: .dotfiles,
+                identifier: "~/.zshrc",
+                value: .string("local-hash"),
+                details: ["path": .string("~/.zshrc")]
+            )
+        ])
+        let selection = DriftItem(
+            category: .dotfiles,
+            identifier: "~/.zshrc",
+            repoValue: .string("repo-hash"),
+            localValue: .string("local-hash"),
+            status: .modified,
+            suggestedResolutions: [.apply, .promote]
+        )
+
+        let applyResult = try WorkspaceApplyCoordinator(
+            fileSystem: fileSystem,
+            fileRestorer: FileRestorer(fileSystem: fileSystem),
+            manualTaskEngine: ManualTaskEngine(locale: locale),
+            locale: locale
+        ).apply(
+            workspace: workspace,
+            repoSnapshot: repoSnapshot,
+            selections: [selection],
+            homeDirectory: homeDirectory
+        )
+        let promoteResult = try WorkspacePromoteCoordinator(
+            fileSystem: fileSystem,
+            manualTaskEngine: ManualTaskEngine(locale: locale),
+            locale: locale
+        ).promote(
+            workspace: workspace,
+            environmentSnapshot: environmentSnapshot,
+            selections: [selection],
+            homeDirectory: homeDirectory,
+            stagingRoot: stagingRoot
+        )
+
+        #expect(applyResult.report.title == "워크스페이스 적용 요약")
+        #expect(applyResult.report.successes.first?.detail == "워크스페이스에서 적용됨")
+        #expect(promoteResult.report.title == "워크스페이스 반영 요약")
+        #expect(promoteResult.report.successes.first?.detail.contains("후보 파일 스테이징 완료") == true)
     }
 }

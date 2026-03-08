@@ -1,4 +1,5 @@
 import Foundation
+import Localization
 import SharedModels
 
 public protocol BundleArtifactReading {
@@ -8,19 +9,21 @@ public protocol BundleArtifactReading {
 
 public struct BundleArtifactReader: BundleArtifactReading {
     private let fileSystem: FileSysteming
+    private let locale: Locale?
 
-    public init(fileSystem: FileSysteming = LocalFileSystem()) {
+    public init(fileSystem: FileSysteming = LocalFileSystem(), locale: Locale? = nil) {
         self.fileSystem = fileSystem
+        self.locale = locale
     }
 
     public func readText(at url: URL) -> String {
         guard fileSystem.fileExists(at: url) else {
-            return "Not found: \(url.path)"
+            return L10n.format(.artifactNotFound, locale: locale, url.path)
         }
 
         guard let data = try? fileSystem.readData(at: url),
               let content = String(data: data, encoding: .utf8) else {
-            return "Unreadable: \(url.path)"
+            return L10n.format(.artifactUnreadable, locale: locale, url.path)
         }
 
         return content
@@ -29,7 +32,7 @@ public struct BundleArtifactReader: BundleArtifactReading {
     public func readLogPreview(at logsDirectory: URL) -> String {
         guard let files = try? fileSystem.listDirectory(at: logsDirectory),
               let first = files.sorted(by: { $0.lastPathComponent < $1.lastPathComponent }).first else {
-            return "No logs"
+            return L10n.string(.placeholderNoLogs, locale: locale)
         }
 
         return readText(at: first)
@@ -77,11 +80,12 @@ public struct BundlePreviewService: BundlePreviewLoading {
         fileSystem: FileSysteming = LocalFileSystem(),
         bundleValidator: BundleValidator? = nil,
         preflightService: PreflightService? = nil,
-        artifactReader: BundleArtifactReading? = nil
+        artifactReader: BundleArtifactReading? = nil,
+        locale: Locale? = nil
     ) {
         self.bundleValidator = bundleValidator ?? BundleValidator(fileSystem: fileSystem)
-        self.preflightService = preflightService ?? PreflightService(fileSystem: fileSystem)
-        self.artifactReader = artifactReader ?? BundleArtifactReader(fileSystem: fileSystem)
+        self.preflightService = preflightService ?? PreflightService(fileSystem: fileSystem, locale: locale)
+        self.artifactReader = artifactReader ?? BundleArtifactReader(fileSystem: fileSystem, locale: locale)
     }
 
     public func load(from bundleURL: URL) throws -> BundlePreview {

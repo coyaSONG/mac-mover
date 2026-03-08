@@ -1,4 +1,5 @@
 import Foundation
+import Localization
 import SharedModels
 import Core
 
@@ -7,17 +8,20 @@ struct DotfilesExporter {
     private let allowlist: DotfileAllowlist
     private let manualTaskEngine: ManualTaskEngine
     private let homeDirectory: String
+    private let locale: Locale?
 
     init(
         fileSystem: FileSysteming,
         allowlist: DotfileAllowlist,
         manualTaskEngine: ManualTaskEngine,
-        homeDirectory: String
+        homeDirectory: String,
+        locale: Locale? = nil
     ) {
         self.fileSystem = fileSystem
         self.allowlist = allowlist
         self.manualTaskEngine = manualTaskEngine
         self.homeDirectory = homeDirectory
+        self.locale = locale
     }
 
     func export(to layout: BundleLayout) -> ComponentExportResult {
@@ -27,7 +31,7 @@ struct DotfilesExporter {
             if SecretPolicy.shouldExclude(path: configuredPath) {
                 result.manualTasks.append(manualTaskEngine.taskForExcludedSecret(configuredPath))
                 result.skipped.append(
-                    StepResult(id: "dotfile.skip.\(IdentifierSanitizer.sanitize(configuredPath))", title: configuredPath, status: .skipped, detail: "excluded by secret policy")
+                    StepResult(id: "dotfile.skip.\(IdentifierSanitizer.sanitize(configuredPath))", title: configuredPath, status: .skipped, detail: L10n.string(.exportExcludedBySecretPolicy, locale: locale))
                 )
                 continue
             }
@@ -36,7 +40,7 @@ struct DotfilesExporter {
             let sourceURL = URL(fileURLWithPath: absolutePath)
             guard fileSystem.fileExists(at: sourceURL) else {
                 result.skipped.append(
-                    StepResult(id: "dotfile.missing.\(IdentifierSanitizer.sanitize(configuredPath))", title: configuredPath, status: .skipped, detail: "file not found")
+                    StepResult(id: "dotfile.missing.\(IdentifierSanitizer.sanitize(configuredPath))", title: configuredPath, status: .skipped, detail: L10n.string(.exportFileNotFound, locale: locale))
                 )
                 continue
             }
@@ -62,7 +66,7 @@ struct DotfilesExporter {
                         secret: false,
                         risk: .medium,
                         verify: VerifySpec(expectedFile: configuredPath),
-                        notes: ["overwrite creates timestamped .bak backup"]
+                        notes: [L10n.string(.exportOverwriteBackupNote, locale: locale)]
                     )
                 )
             } catch {

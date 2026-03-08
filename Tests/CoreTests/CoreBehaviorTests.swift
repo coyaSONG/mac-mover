@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+@testable import Localization
 @testable import SharedModels
 @testable import Core
 @testable import Reporting
@@ -65,6 +66,37 @@ struct CoreBehaviorTests {
         #expect(overwriteTask.reason.contains(".gitconfig"))
     }
 
+    @Test("Manual tasks and verify output can use Korean locale")
+    func manualTasksAndVerifyOutputCanUseKoreanLocale() {
+        let locale = Locale(identifier: "ko")
+        let engine = ManualTaskEngine(locale: locale)
+        let brewTask = engine.taskForMissingBrew()
+        let verifyEngine = VerifyEngine(
+            fileSystem: InMemoryFileSystem(files: ["/Users/test/.zshrc": Data()]),
+            locale: locale
+        )
+
+        let report = verifyEngine.verify(
+            items: [
+                ManifestItem(
+                    id: "dotfile.zshrc",
+                    kind: .dotfile,
+                    title: "~/.zshrc",
+                    restorePhase: .verify,
+                    payload: [:],
+                    secret: false,
+                    verify: VerifySpec(expectedFile: "~/.zshrc")
+                )
+            ],
+            homeDirectory: "/Users/test"
+        )
+
+        #expect(brewTask.title == "Homebrew 설치 필요")
+        #expect(brewTask.reason == "이 머신에는 Homebrew가 설치되어 있지 않습니다.")
+        #expect(report.title == "검증 리포트")
+        #expect(report.successes.first?.detail == "파일 존재: ~/.zshrc")
+    }
+
     @Test("Preflight checks include Brew prefix and writeability")
     func preflightChecksIncludeBrewPrefixAndWriteability() {
         let runner = MockCommandRunner(stubs: [
@@ -113,6 +145,31 @@ struct CoreBehaviorTests {
 
         #expect(result.checks.contains(where: { $0.id == "preflight.brew" && $0.passed }))
         #expect(result.checks.contains(where: { $0.id == "preflight.brew-prefix" && !$0.passed }))
+    }
+
+    @Test("Preflight checks can use Korean locale")
+    func preflightChecksCanUseKoreanLocale() {
+        let runner = MockCommandRunner(stubs: [
+            .init(executable: "/bin/hostname", arguments: [], result: .success(.init(executable: "/bin/hostname", arguments: [], exitCode: 0, stdout: "test-host\n", stderr: ""))),
+            .init(executable: "/usr/bin/uname", arguments: ["-m"], result: .success(.init(executable: "/usr/bin/uname", arguments: ["-m"], exitCode: 0, stdout: "arm64\n", stderr: ""))),
+            .init(executable: "/usr/bin/sw_vers", arguments: ["-productVersion"], result: .success(.init(executable: "/usr/bin/sw_vers", arguments: ["-productVersion"], exitCode: 0, stdout: "15.3\n", stderr: ""))),
+            .init(executable: "/usr/bin/env", arguments: ["which", "brew"], result: .failure(MoverError.commandFailed(executable: "/usr/bin/env", arguments: ["which", "brew"], code: 1, stderr: "not found"))),
+            .init(executable: "/usr/bin/env", arguments: ["which", "git"], result: .success(.init(executable: "/usr/bin/env", arguments: ["which", "git"], exitCode: 0, stdout: "/usr/bin/git\n", stderr: ""))),
+            .init(executable: "/usr/bin/env", arguments: ["which", "code"], result: .failure(MoverError.commandFailed(executable: "/usr/bin/env", arguments: ["which", "code"], code: 1, stderr: "not found")))
+        ])
+        let fileSystem = InMemoryFileSystem(directories: ["/Users/test"])
+        let service = PreflightService(
+            runner: runner,
+            fileSystem: fileSystem,
+            machineCollector: MachineInfoCollector(runner: runner),
+            locale: Locale(identifier: "ko")
+        )
+
+        let result = service.run(mode: .export(destination: URL(fileURLWithPath: "/tmp/export")))
+
+        #expect(result.checks.contains(where: { $0.id == "preflight.macos" && $0.title == "macOS 버전" }))
+        #expect(result.checks.contains(where: { $0.id == "preflight.brew" && $0.detail == "brew 명령을 찾을 수 없습니다" }))
+        #expect(result.checks.contains(where: { $0.id == "preflight.git" && $0.detail == "git 사용 가능" }))
     }
 
     @Test("Restore file creates backup before overwrite")
@@ -240,7 +297,7 @@ struct CoreBehaviorTests {
             manualTasks: [ManualTask(id: "m1", title: "Manual", reason: "r", action: "a", blocking: false)]
         )
 
-        let markdown = MarkdownReportWriter().renderOperationReport(report)
+        let markdown = MarkdownReportWriter(locale: Locale(identifier: "en")).renderOperationReport(report)
         #expect(markdown.contains("## Success"))
         #expect(markdown.contains("## Failed"))
         #expect(markdown.contains("## Manual Follow-up"))

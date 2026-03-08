@@ -1,4 +1,5 @@
 import Foundation
+import Localization
 
 public enum MoverError: Error, LocalizedError, Sendable {
     case commandFailed(executable: String, arguments: [String], code: Int32, stderr: String)
@@ -12,19 +13,19 @@ public enum MoverError: Error, LocalizedError, Sendable {
     public var errorDescription: String? {
         switch self {
         case .commandFailed(let executable, let arguments, let code, let stderr):
-            return "Command failed: \(executable) \(arguments.joined(separator: " ")) (\(code)) \(stderr)"
+            return L10n.format(.errorCommandFailed, executable, arguments.joined(separator: " "), code, stderr)
         case .missingRequiredFile(let path):
-            return "Missing required file: \(path)"
+            return L10n.format(.errorMissingRequiredFile, path)
         case .invalidManifest(let reason):
-            return "Invalid manifest: \(reason)"
+            return L10n.format(.errorInvalidManifest, reason)
         case .invalidWorkspace(let reason):
-            return "Invalid workspace: \(reason)"
+            return L10n.format(.errorInvalidWorkspace, reason)
         case .unsupportedSchemaVersion(let version):
-            return "Unsupported schema version: \(version)"
+            return L10n.format(.errorUnsupportedSchemaVersion, version)
         case .blockedByPreflight(let reason):
-            return "Preflight blocked execution: \(reason)"
+            return L10n.format(.errorBlockedByPreflight, reason)
         case .ioFailure(let reason):
-            return "I/O failure: \(reason)"
+            return L10n.format(.errorIOFailure, reason)
         }
     }
 }

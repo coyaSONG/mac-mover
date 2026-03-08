@@ -26,6 +26,7 @@ A native macOS app that scans your dev environment repo, detects drift from your
 - **VS Code** — Extensions, settings, keybindings, and snippets
 - **Tool versions** — `mise` and `.tool-versions` detection
 - **Safe by default** — Secrets excluded, overwrites create `.bak` backups, no silent deletes
+- **English/Korean localization** — SwiftUI shell, runtime status, manual tasks, preflight output, and generated markdown reports
 - **Legacy bundle export/import** — Full bundle-based migration for same-category machines
 - **Markdown reports** — Workspace scan, drift, export, import, and verify summaries
 
@@ -103,6 +104,8 @@ docs/                # Architecture and implementation plans
 swift build
 swift test
 ```
+
+MacMover currently ships with English (`en`) as the default localization and Korean (`ko`) as an additional supported language. The app follows the selected macOS app language for UI, runtime summaries, and generated report scaffolding.
 
 Additional project checks:
 

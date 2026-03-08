@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+@testable import Localization
 @testable import SharedModels
 @testable import Core
 @testable import Exporters
@@ -42,7 +43,7 @@ struct IntegrationTests {
             warnings: brewResult.warnings,
             manualTasks: brewResult.manualTasks
         )
-        let markdown = MarkdownReportWriter().renderOperationReport(exportReport)
+        let markdown = MarkdownReportWriter(locale: Locale(identifier: "en")).renderOperationReport(exportReport)
         #expect(markdown.contains("Brewfile"))
         #expect(markdown.contains("git"))
         #expect(markdown.contains("iterm2"))
@@ -289,7 +290,7 @@ struct IntegrationTests {
         #expect(report.successes.count == 1)
         #expect(report.failures.count == 1)
 
-        let markdown = MarkdownReportWriter().renderOperationReport(report)
+        let markdown = MarkdownReportWriter(locale: Locale(identifier: "en")).renderOperationReport(report)
         #expect(markdown.contains("## Failed"))
         #expect(markdown.contains("expected@example.com"))
     }
@@ -326,5 +327,75 @@ struct IntegrationTests {
 
         #expect(report.successes.count == 2)
         #expect(report.failures.isEmpty)
+    }
+
+    @Test
+    func exportersAndImportCoordinatorCanRenderKoreanStatusText() throws {
+        let locale = Locale(identifier: "ko")
+        let missingBrewRunner = MockCommandRunner(stubs: [])
+        let brewExporter = HomebrewExporter(
+            runner: missingBrewRunner,
+            fileSystem: InMemoryFileSystem(),
+            manualTaskEngine: ManualTaskEngine(locale: locale),
+            locale: locale
+        )
+        let brewExport = brewExporter.export(to: BundleLayout(root: URL(fileURLWithPath: "/tmp/ko-export-bundle")))
+
+        #expect(brewExport.skipped.first?.title == "Homebrew 내보내기")
+        #expect(brewExport.skipped.first?.detail == "brew 명령을 찾을 수 없습니다")
+
+        let homeDirectory = FileManager.default.homeDirectoryForCurrentUser.path
+        let bundleURL = URL(fileURLWithPath: "/tmp/ko-import-bundle")
+        let layout = BundleLayout(root: bundleURL)
+        let fileSystem = InMemoryFileSystem(
+            directories: [
+                bundleURL.path,
+                layout.reportsDirectory.path,
+                layout.logsDirectory.path,
+                homeDirectory
+            ]
+        )
+        let manifest = Manifest(
+            exportedAt: Date(timeIntervalSince1970: 1_700_000_000),
+            machine: MachineInfo(
+                hostname: "source-host",
+                architecture: .arm64,
+                macosVersion: "15.3",
+                homeDirectory: homeDirectory,
+                homebrewPrefix: "/opt/homebrew",
+                userName: "tester"
+            ),
+            items: [
+                ManifestItem(
+                    id: "dotfile.zshrc",
+                    kind: .dotfile,
+                    title: "~/.zshrc",
+                    restorePhase: .config,
+                    source: ItemSource(path: "~/.zshrc"),
+                    payload: ["relativePath": .string("files/dotfiles/.zshrc")],
+                    secret: false,
+                    verify: VerifySpec(expectedFile: "~/.zshrc")
+                )
+            ],
+            restorePlan: [
+                RestoreStep(phase: .config, itemIds: ["dotfile.zshrc"]),
+                RestoreStep(phase: .verify, itemIds: ["dotfile.zshrc"])
+            ],
+            reports: ManifestReports(exportSummaryPath: "reports/export-summary.md", verifySummaryPath: "reports/verify-summary.md")
+        )
+        let store = ManifestStore(fileSystem: fileSystem)
+        try store.write(manifest, to: layout.manifestURL)
+        let coordinator = ImportCoordinator(
+            runner: MockCommandRunner(stubs: []),
+            fileSystem: fileSystem,
+            manifestStore: store,
+            locale: locale
+        )
+
+        let result = try coordinator.import(from: bundleURL)
+
+        #expect(result.importReport.title == "가져오기 요약")
+        #expect(result.verifyReport.title == "검증 리포트")
+        #expect(result.importReport.warnings.contains("검증 단계에 실패한 점검이 있습니다."))
     }
 }

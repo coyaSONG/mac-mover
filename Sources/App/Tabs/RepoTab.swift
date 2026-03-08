@@ -1,4 +1,7 @@
 import SwiftUI
+#if canImport(Localization)
+import Localization
+#endif
 
 struct RepoTab: View {
     @EnvironmentObject private var appState: AppState
@@ -7,11 +10,11 @@ struct RepoTab: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                CardView(title: "Connected Workspace", icon: "folder.badge.gearshape") {
+                CardView(title: L10n.string(.repoConnectedWorkspaceTitle), icon: "folder.badge.gearshape") {
                     HStack {
-                        TextField("Workspace path", text: $appState.workspacePath)
+                        TextField(L10n.string(.repoWorkspacePathPlaceholder), text: $appState.workspacePath)
                             .textFieldStyle(.roundedBorder)
-                        Button("Browse", action: appState.chooseWorkspaceFolder)
+                        Button(L10n.string(.actionBrowse), action: appState.chooseWorkspaceFolder)
                     }
 
                     Button {
@@ -20,7 +23,7 @@ struct RepoTab: View {
                             await appState.connectWorkspace(at: url)
                         }
                     } label: {
-                        Label("Scan Workspace", systemImage: "arrow.triangle.2.circlepath")
+                        Label(L10n.string(.actionScanWorkspace), systemImage: "arrow.triangle.2.circlepath")
                             .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.borderedProminent)
@@ -31,22 +34,21 @@ struct RepoTab: View {
                         Divider().padding(.vertical, 4)
                         Label(workspace.rootPath, systemImage: "folder")
                             .textSelection(.enabled)
-                        Label(
-                            workspace.detectedTools.map(\.rawValue).sorted().joined(separator: ", "),
-                            systemImage: "wrench.and.screwdriver"
-                        )
-                        .foregroundStyle(Color.appMuted)
+                        if let toolSummary = appState.connectedWorkspaceToolSummary {
+                            Label(toolSummary, systemImage: "wrench.and.screwdriver")
+                                .foregroundStyle(Color.appMuted)
+                        }
                     }
                 }
                 .overlay {
-                    if appState.isRunning && appState.statusMessage.contains("Workspace scan") {
+                    if appState.isWorkspaceScanRunning {
                         ProgressOverlay(message: appState.statusMessage)
                     }
                 }
                 .opacity(appeared ? 1 : 0)
                 .offset(y: appeared ? 0 : 10)
 
-                CardView(title: "Workspace Scan Summary", icon: "doc.text.magnifyingglass") {
+                CardView(title: L10n.string(.repoWorkspaceScanSummaryTitle), icon: "doc.text.magnifyingglass") {
                     ScrollView {
                         Text(appState.workspaceScanSummary)
                             .font(.system(.body, design: .monospaced))

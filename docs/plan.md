@@ -2,10 +2,13 @@
 
 ## Current Planning Focus
 
+- Approved localization design doc: `docs/plans/2026-03-07-localization-design.md`
+- Detailed localization implementation plan: `docs/plans/2026-03-07-localization-implementation.md`
 - Product direction is shifting from a bundle-first migration app to a repo-first developer environment control tower.
 - Approved design doc: `docs/plans/2026-03-07-dev-env-control-tower-design.md`
 - Detailed implementation plan: `docs/plans/2026-03-07-dev-env-control-tower-implementation.md`
 - Sync model: `repo-first + drift detection`
+- Recently completed: English/Korean localization for app shell text, runtime status/manual tasks, preflight output, and generated reports
 - Recently completed: repo adapters, local environment scanning, drift/apply/promote flows, workspace reporting, AppState/UI shell reframe, and Xcode project registration for new sources.
 - Near-term cleanup target: keep only reproducible sample bundle fixture inputs tracked in git, move generated logs and reports to ignored local artifacts, and align the README with that policy.
 

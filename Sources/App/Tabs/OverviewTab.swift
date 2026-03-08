@@ -1,4 +1,7 @@
 import SwiftUI
+#if canImport(Localization)
+import Localization
+#endif
 
 struct OverviewTab: View {
     @EnvironmentObject private var appState: AppState
@@ -7,40 +10,40 @@ struct OverviewTab: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                CardView(title: "App Overview", icon: "info.circle") {
-                    Text("Manage a local developer environment repo, compare it against the current Mac, and preview workspace drift before apply or promote actions.")
+                CardView(title: L10n.string(.overviewAppOverviewTitle), icon: "info.circle") {
+                    Text(L10n.string(.overviewAppOverviewDescription))
                 }
                 .opacity(appeared ? 1 : 0)
                 .offset(y: appeared ? 0 : 10)
 
-                CardView(title: "Current Machine", icon: "desktopcomputer") {
+                CardView(title: L10n.string(.overviewCurrentMachineTitle), icon: "desktopcomputer") {
                     VStack(alignment: .leading, spacing: 8) {
-                        machineRow(icon: "network", label: "Host", value: appState.machineHost)
-                        machineRow(icon: "cpu", label: "Architecture", value: appState.machineArch)
-                        machineRow(icon: "apple.logo", label: "macOS", value: appState.machineOS)
-                        machineRow(icon: "house", label: "Home", value: appState.machineHome)
-                        machineRow(icon: "mug", label: "Brew Prefix", value: appState.machineBrewPrefix)
+                        machineRow(icon: "network", label: L10n.string(.labelHost), value: appState.machineHost)
+                        machineRow(icon: "cpu", label: L10n.string(.labelArchitecture), value: appState.machineArch)
+                        machineRow(icon: "apple.logo", label: L10n.string(.labelMacOS), value: appState.machineOS)
+                        machineRow(icon: "house", label: L10n.string(.labelHome), value: appState.machineHome)
+                        machineRow(icon: "mug", label: L10n.string(.labelBrewPrefix), value: appState.machineBrewPrefix)
                     }
                 }
                 .opacity(appeared ? 1 : 0)
                 .offset(y: appeared ? 0 : 10)
 
-                CardView(title: "Recent Runs", icon: "clock") {
+                CardView(title: L10n.string(.overviewRecentRunsTitle), icon: "clock") {
                     VStack(alignment: .leading, spacing: 8) {
-                        Label(appState.connectedWorkspace?.rootPath ?? "No workspace connected", systemImage: "folder")
+                        Label(appState.connectedWorkspace?.rootPath ?? L10n.string(.overviewNoWorkspaceConnected), systemImage: "folder")
                             .foregroundStyle(appState.connectedWorkspace != nil ? Color.primary : Color.appMuted)
-                        Label("\(appState.driftItems.count) drift items", systemImage: "arrow.left.and.right.righttriangle.left.righttriangle.right")
+                        Label(L10n.format(.overviewDriftItemsCount, appState.driftItems.count), systemImage: "arrow.left.and.right.righttriangle.left.righttriangle.right")
                             .foregroundStyle(appState.driftItems.isEmpty ? Color.appMuted : Color.primary)
                     }
                 }
                 .opacity(appeared ? 1 : 0)
                 .offset(y: appeared ? 0 : 10)
 
-                CardView(title: "Legacy Bundle Workflows", icon: "shippingbox") {
+                CardView(title: L10n.string(.overviewLegacyBundleWorkflowsTitle), icon: "shippingbox") {
                     VStack(alignment: .leading, spacing: 8) {
-                        Label(appState.lastExportBundleURL?.path ?? "No export yet", systemImage: "square.and.arrow.up")
+                        Label(appState.lastExportBundleURL?.path ?? L10n.string(.overviewNoExportYet), systemImage: "square.and.arrow.up")
                             .foregroundStyle(appState.lastExportBundleURL != nil ? Color.primary : Color.appMuted)
-                        Label(appState.lastImportBundleURL?.path ?? "No import yet", systemImage: "square.and.arrow.down")
+                        Label(appState.lastImportBundleURL?.path ?? L10n.string(.overviewNoImportYet), systemImage: "square.and.arrow.down")
                             .foregroundStyle(appState.lastImportBundleURL != nil ? Color.primary : Color.appMuted)
                     }
                 }

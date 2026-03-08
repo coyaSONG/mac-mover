@@ -2,6 +2,7 @@ import Foundation
 import Testing
 @testable import App
 @testable import Core
+@testable import Localization
 @testable import SharedModels
 @testable import Reporting
 
@@ -69,7 +70,7 @@ func runImportPreflightLoadsPreviewState() throws {
     #expect(appState.verifySummary == "verify summary")
     #expect(appState.logsPreview == "log preview")
     #expect(appState.machineSummary == "Machine Summary")
-    #expect(appState.statusMessage == "Import bundle ready")
+    #expect(appState.statusMessage == L10n.string(.statusImportBundleReady))
 }
 
 @Test
@@ -118,28 +119,61 @@ func connectWorkspaceLoadsSnapshotsAndDriftState() async throws {
     #expect(appState.repoSnapshot == repoSnapshot)
     #expect(appState.environmentSnapshot == environmentSnapshot)
     #expect(appState.driftItems == driftItems)
-    #expect(appState.workspaceScanSummary.contains("# Workspace Scan Summary"))
-    #expect(appState.workspaceDriftSummary.contains("# Workspace Drift Summary"))
-    #expect(appState.workspaceApplySummary.contains("Workspace Apply Preview"))
-    #expect(appState.workspacePromoteSummary.contains("Workspace Promote Preview"))
-    #expect(appState.statusMessage == "Workspace scan completed with drift")
+    #expect(appState.workspaceScanSummary.contains("# \(L10n.string(.repoWorkspaceScanSummaryTitle))"))
+    #expect(appState.workspaceDriftSummary.contains("# \(L10n.string(.driftWorkspaceSummaryTitle))"))
+    #expect(appState.workspaceApplySummary.contains(L10n.string(.workspaceApplyPreviewTitle)))
+    #expect(appState.workspacePromoteSummary.contains(L10n.string(.workspacePromotePreviewTitle)))
+    #expect(appState.workspaceApplySummary.contains("[\(L10n.string(.driftModified))]"))
+    #expect(appState.workspacePromoteSummary.contains("[\(L10n.string(.driftModified))]"))
+    #expect(!appState.workspaceApplySummary.contains("[modified]"))
+    #expect(!appState.workspacePromoteSummary.contains("[modified]"))
+    #expect(appState.statusMessage == L10n.string(.statusWorkspaceScanCompletedWithDrift))
 }
 
 @Test
 @MainActor
-func contentViewKeepsRepoDriftAndLegacyTransferTabsReachable() throws {
+func connectedWorkspaceToolSummaryUsesLocalizedLabels() {
+    let appState = AppState(machineSummaryProvider: { "Machine Summary" })
+    appState.connectedWorkspace = ConnectedWorkspace(
+        rootPath: "/tmp/dev-env-repo",
+        detectedTools: [.plainDotfiles, .homebrew]
+    )
+
+    #expect(appState.connectedWorkspaceToolSummary == "Homebrew, Plain Dotfiles")
+}
+
+@Test
+@MainActor
+func connectedWorkspaceToolSummaryIsNilWhenNoToolsWereDetected() {
+    let appState = AppState(machineSummaryProvider: { "Machine Summary" })
+    appState.connectedWorkspace = ConnectedWorkspace(
+        rootPath: "/tmp/dev-env-repo",
+        detectedTools: []
+    )
+
+    #expect(appState.connectedWorkspaceToolSummary == nil)
+}
+
+@Test
+@MainActor
+func repoTabUsesExplicitWorkspaceScanStateForOverlay() throws {
     let sourceRoot = URL(fileURLWithPath: #filePath)
         .deletingLastPathComponent()
         .deletingLastPathComponent()
         .deletingLastPathComponent()
-    let contentViewURL = sourceRoot.appendingPathComponent("Sources/App/ContentView.swift")
-    let content = try String(contentsOf: contentViewURL, encoding: .utf8)
+    let repoTabURL = sourceRoot.appendingPathComponent("Sources/App/Tabs/RepoTab.swift")
+    let content = try String(contentsOf: repoTabURL, encoding: .utf8)
 
-    #expect(content.contains("Label(\"Repo\""))
-    #expect(content.contains("Label(\"Drift\""))
-    #expect(content.contains("Label(\"Export\""))
-    #expect(content.contains("Label(\"Import\""))
-    #expect(content.contains("Label(\"Reports\""))
+    #expect(content.contains("appState.isWorkspaceScanRunning"))
+    #expect(!content.contains("appState.statusMessage == L10n.string(.statusWorkspaceScanRunning)"))
+}
+
+@Test
+func overviewDriftItemCountUsesLocalizedPluralization() {
+    #expect(L10n.format(.overviewDriftItemsCount, locale: Locale(identifier: "en"), 1) == "1 drift item")
+    #expect(L10n.format(.overviewDriftItemsCount, locale: Locale(identifier: "en"), 2) == "2 drift items")
+    #expect(L10n.format(.overviewDriftItemsCount, locale: Locale(identifier: "ko"), 1) == "드리프트 항목 1개")
+    #expect(L10n.format(.overviewDriftItemsCount, locale: Locale(identifier: "ko"), 3) == "드리프트 항목 3개")
 }
 
 @Test

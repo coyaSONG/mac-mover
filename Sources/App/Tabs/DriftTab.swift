@@ -1,4 +1,7 @@
 import SwiftUI
+#if canImport(Localization)
+import Localization
+#endif
 
 struct DriftTab: View {
     @EnvironmentObject private var appState: AppState
@@ -7,19 +10,19 @@ struct DriftTab: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                CardView(title: "Drift Overview", icon: "arrow.left.and.right.righttriangle.left.righttriangle.right") {
+                CardView(title: L10n.string(.driftOverviewTitle), icon: "arrow.left.and.right.righttriangle.left.righttriangle.right") {
                     VStack(alignment: .leading, spacing: 8) {
-                        driftRow(title: "Modified", count: appState.driftItems.filter { $0.status == .modified }.count)
-                        driftRow(title: "Missing", count: appState.driftItems.filter { $0.status == .missing }.count)
-                        driftRow(title: "Extra", count: appState.driftItems.filter { $0.status == .extra }.count)
-                        driftRow(title: "Manual", count: appState.driftItems.filter { $0.status == .manual }.count)
-                        driftRow(title: "Unsupported", count: appState.driftItems.filter { $0.status == .unsupported }.count)
+                        driftRow(title: L10n.string(.driftModified), count: appState.driftItems.filter { $0.status == .modified }.count)
+                        driftRow(title: L10n.string(.driftMissing), count: appState.driftItems.filter { $0.status == .missing }.count)
+                        driftRow(title: L10n.string(.driftExtra), count: appState.driftItems.filter { $0.status == .extra }.count)
+                        driftRow(title: L10n.string(.driftManual), count: appState.driftItems.filter { $0.status == .manual }.count)
+                        driftRow(title: L10n.string(.driftUnsupported), count: appState.driftItems.filter { $0.status == .unsupported }.count)
                     }
                 }
                 .opacity(appeared ? 1 : 0)
                 .offset(y: appeared ? 0 : 10)
 
-                CardView(title: "Workspace Drift Summary", icon: "list.bullet.rectangle") {
+                CardView(title: L10n.string(.driftWorkspaceSummaryTitle), icon: "list.bullet.rectangle") {
                     ScrollView {
                         Text(appState.workspaceDriftSummary)
                             .font(.system(.body, design: .monospaced))
@@ -31,7 +34,7 @@ struct DriftTab: View {
                 .opacity(appeared ? 1 : 0)
                 .offset(y: appeared ? 0 : 10)
 
-                CardView(title: "Apply Preview", icon: "square.and.arrow.down.on.square") {
+                CardView(title: L10n.string(.workspaceApplyPreviewTitle), icon: "square.and.arrow.down.on.square") {
                     Text(appState.workspaceApplySummary)
                         .font(.system(.body, design: .monospaced))
                         .textSelection(.enabled)
@@ -40,7 +43,7 @@ struct DriftTab: View {
                 .opacity(appeared ? 1 : 0)
                 .offset(y: appeared ? 0 : 10)
 
-                CardView(title: "Promote Preview", icon: "square.and.arrow.up.on.square") {
+                CardView(title: L10n.string(.workspacePromotePreviewTitle), icon: "square.and.arrow.up.on.square") {
                     Text(appState.workspacePromoteSummary)
                         .font(.system(.body, design: .monospaced))
                         .textSelection(.enabled)

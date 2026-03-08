@@ -1,9 +1,12 @@
 import SwiftUI
+#if canImport(Localization)
+import Localization
+#endif
 
 struct ExportTab: View {
     var body: some View {
-        CardView(title: "Legacy Export", icon: "shippingbox") {
-            Text("Legacy bundle export remains available through AppState, but the main navigation now centers on repo, drift, and reports.")
+        CardView(title: L10n.string(.exportLegacyTitle), icon: "shippingbox") {
+            Text(L10n.string(.exportLegacyDescription))
         }
     }
 }

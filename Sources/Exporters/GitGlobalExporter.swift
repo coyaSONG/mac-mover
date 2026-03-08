@@ -1,26 +1,29 @@
 import Foundation
+import Localization
 import SharedModels
 import Core
 
 struct GitGlobalExporter {
     private let runner: CommandRunning
     private let manualTaskEngine: ManualTaskEngine
+    private let locale: Locale?
 
-    init(runner: CommandRunning, manualTaskEngine: ManualTaskEngine) {
+    init(runner: CommandRunning, manualTaskEngine: ManualTaskEngine, locale: Locale? = nil) {
         self.runner = runner
         self.manualTaskEngine = manualTaskEngine
+        self.locale = locale
     }
 
     func export() -> ComponentExportResult {
         var result = ComponentExportResult()
 
         guard runner.commandExists("git") else {
-            result.skipped.append(StepResult(id: "git.global", title: "Git global config", status: .skipped, detail: "git command not found"))
+            result.skipped.append(StepResult(id: "git.global", title: L10n.string(.exportGitGlobalTitle, locale: locale), status: .skipped, detail: L10n.string(.exportGitCommandNotFound, locale: locale)))
             return result
         }
 
         guard let output = try? runner.run(executable: "/usr/bin/env", arguments: ["git", "config", "--global", "--list"]).stdout else {
-            result.failures.append(StepResult(id: "git.global", title: "Git global config", status: .failed, detail: "failed to read git global config"))
+            result.failures.append(StepResult(id: "git.global", title: L10n.string(.exportGitGlobalTitle, locale: locale), status: .failed, detail: L10n.string(.exportGitReadFailed, locale: locale)))
             return result
         }
 
@@ -32,7 +35,7 @@ struct GitGlobalExporter {
 
             if SecretPolicy.shouldExclude(path: key) {
                 result.manualTasks.append(manualTaskEngine.taskForExcludedSecret("git config --global \(key)"))
-                result.skipped.append(StepResult(id: "git.global.skip.\(IdentifierSanitizer.sanitize(key))", title: key, status: .skipped, detail: "excluded by secret policy"))
+                result.skipped.append(StepResult(id: "git.global.skip.\(IdentifierSanitizer.sanitize(key))", title: key, status: .skipped, detail: L10n.string(.exportExcludedBySecretPolicy, locale: locale)))
                 continue
             }
 
@@ -53,7 +56,7 @@ struct GitGlobalExporter {
             )
         }
 
-        result.successes.append(StepResult(id: "git.global", title: "Git global config", status: .success, detail: "\(result.items.count) entries"))
+        result.successes.append(StepResult(id: "git.global", title: L10n.string(.exportGitGlobalTitle, locale: locale), status: .success, detail: L10n.format(.exportGitEntries, locale: locale, result.items.count)))
         return result
     }
 }

@@ -1,19 +1,26 @@
 import Foundation
 import SharedModels
+#if canImport(Localization)
+import Localization
+#endif
 
 public struct MarkdownReportWriter {
-    public init() {}
+    private let locale: Locale?
+
+    public init(locale: Locale? = nil) {
+        self.locale = locale
+    }
 
     public func renderPreflight(_ result: PreflightResult) -> String {
         var lines: [String] = []
-        lines.append("# Preflight")
+        lines.append("# \(L10n.string(.reportPreflightTitle, locale: locale))")
         lines.append("")
-        lines.append("- Host: \(result.machine.hostname)")
-        lines.append("- Architecture: \(result.machine.architecture.rawValue)")
-        lines.append("- macOS: \(result.machine.macosVersion)")
-        lines.append("- Home: \(result.machine.homeDirectory)")
+        lines.append("- \(L10n.string(.labelHost, locale: locale)): \(result.machine.hostname)")
+        lines.append("- \(L10n.string(.labelArchitecture, locale: locale)): \(result.machine.architecture.rawValue)")
+        lines.append("- \(L10n.string(.labelMacOS, locale: locale)): \(result.machine.macosVersion)")
+        lines.append("- \(L10n.string(.labelHome, locale: locale)): \(result.machine.homeDirectory)")
         lines.append("")
-        lines.append("## Checks")
+        lines.append("## \(L10n.string(.reportChecksTitle, locale: locale))")
 
         for check in result.checks {
             let icon = check.passed ? "[OK]" : (check.blocking ? "[BLOCK]" : "[WARN]")
@@ -27,49 +34,50 @@ public struct MarkdownReportWriter {
         var lines: [String] = []
         lines.append("# \(report.title)")
         lines.append("")
-        lines.append("Generated at: \(ISO8601DateFormatter().string(from: report.generatedAt))")
+        lines.append(L10n.format(.reportGeneratedAt, locale: locale, ISO8601DateFormatter().string(from: report.generatedAt)))
         lines.append("")
 
-        lines.append("## Success")
+        lines.append("## \(L10n.string(.reportSuccessTitle, locale: locale))")
         if report.successes.isEmpty {
-            lines.append("- (none)")
+            lines.append("- \(L10n.string(.placeholderNone, locale: locale))")
         } else {
             report.successes.forEach { lines.append("- \($0.title): \($0.detail)") }
         }
 
         lines.append("")
-        lines.append("## Failed")
+        lines.append("## \(L10n.string(.reportFailedTitle, locale: locale))")
         if report.failures.isEmpty {
-            lines.append("- (none)")
+            lines.append("- \(L10n.string(.placeholderNone, locale: locale))")
         } else {
             report.failures.forEach { lines.append("- \($0.title): \($0.detail)") }
         }
 
         lines.append("")
-        lines.append("## Skipped")
+        lines.append("## \(L10n.string(.reportSkippedTitle, locale: locale))")
         if report.skipped.isEmpty {
-            lines.append("- (none)")
+            lines.append("- \(L10n.string(.placeholderNone, locale: locale))")
         } else {
             report.skipped.forEach { lines.append("- \($0.title): \($0.detail)") }
         }
 
         lines.append("")
-        lines.append("## Warnings")
+        lines.append("## \(L10n.string(.reportWarningsTitle, locale: locale))")
         if report.warnings.isEmpty {
-            lines.append("- (none)")
+            lines.append("- \(L10n.string(.placeholderNone, locale: locale))")
         } else {
             report.warnings.forEach { lines.append("- \($0)") }
         }
 
         lines.append("")
-        lines.append("## Manual Follow-up")
+        lines.append("## \(L10n.string(.reportManualFollowUpTitle, locale: locale))")
         if report.manualTasks.isEmpty {
-            lines.append("- (none)")
+            lines.append("- \(L10n.string(.placeholderNone, locale: locale))")
         } else {
             report.manualTasks.forEach {
-                lines.append("- \($0.title) [blocking: \($0.blocking ? "yes" : "no")]")
-                lines.append("  - reason: \($0.reason)")
-                lines.append("  - action: \($0.action)")
+                let blockingValue = $0.blocking ? L10n.string(.reportBlockingYes, locale: locale) : L10n.string(.reportBlockingNo, locale: locale)
+                lines.append("- \($0.title) [blocking: \(blockingValue)]")
+                lines.append("  - \(L10n.string(.reportReasonLabel, locale: locale)): \($0.reason)")
+                lines.append("  - \(L10n.string(.reportActionLabel, locale: locale)): \($0.action)")
             }
         }
 
@@ -83,19 +91,19 @@ public struct MarkdownReportWriter {
     ) -> String {
         let formatter = ISO8601DateFormatter()
         var lines: [String] = []
-        lines.append("# Workspace Scan Summary")
+        lines.append("# \(L10n.string(.repoWorkspaceScanSummaryTitle, locale: locale))")
         lines.append("")
-        lines.append("Generated at: \(formatter.string(from: workspace.lastScannedAt ?? environmentSnapshot.capturedAt ?? repoSnapshot.capturedAt ?? Date()))")
+        lines.append(L10n.format(.reportGeneratedAt, locale: locale, formatter.string(from: workspace.lastScannedAt ?? environmentSnapshot.capturedAt ?? repoSnapshot.capturedAt ?? Date())))
         lines.append("")
-        lines.append("- Workspace root: \(workspace.rootPath)")
-        lines.append("- Detected tools: \(workspace.detectedTools.map { $0.rawValue }.sorted().joined(separator: ", "))")
-        lines.append("- Repo items: \(repoSnapshot.items.count)")
-        lines.append("- Local items: \(environmentSnapshot.items.count)")
+        lines.append("- \(L10n.format(.reportWorkspaceRoot, locale: locale, workspace.rootPath))")
+        lines.append("- \(L10n.format(.reportDetectedTools, locale: locale, workspace.detectedTools.map(localizedToolName).sorted().joined(separator: ", ")))")
+        lines.append("- \(L10n.format(.reportRepoItems, locale: locale, repoSnapshot.items.count))")
+        lines.append("- \(L10n.format(.reportLocalItems, locale: locale, environmentSnapshot.items.count))")
         lines.append("")
-        lines.append("## Repo Categories")
+        lines.append("## \(L10n.string(.reportRepoCategoriesTitle, locale: locale))")
         appendWorkspaceCategoryCounts(from: repoSnapshot.items, into: &lines)
         lines.append("")
-        lines.append("## Local Categories")
+        lines.append("## \(L10n.string(.reportLocalCategoriesTitle, locale: locale))")
         appendWorkspaceCategoryCounts(from: environmentSnapshot.items, into: &lines)
         return lines.joined(separator: "\n")
     }
@@ -107,19 +115,19 @@ public struct MarkdownReportWriter {
     ) -> String {
         let formatter = ISO8601DateFormatter()
         var lines: [String] = []
-        lines.append("# Workspace Drift Summary")
+        lines.append("# \(L10n.string(.driftWorkspaceSummaryTitle, locale: locale))")
         lines.append("")
-        lines.append("Generated at: \(formatter.string(from: generatedAt))")
+        lines.append(L10n.format(.reportGeneratedAt, locale: locale, formatter.string(from: generatedAt)))
         lines.append("")
 
         for status in [DriftStatus.modified, .missing, .extra, .manual, .unsupported] {
             let matchingItems = driftItems.filter { $0.status == status }
             lines.append("## \(sectionTitle(for: status))")
             if matchingItems.isEmpty {
-                lines.append("- (none)")
+                lines.append("- \(L10n.string(.placeholderNone, locale: locale))")
             } else {
                 for item in matchingItems.sorted(by: driftSort) {
-                    let resolutions = item.suggestedResolutions.map { $0.rawValue }.joined(separator: ", ")
+                    let resolutions = item.suggestedResolutions.map(localizedResolutionName).joined(separator: ", ")
                     if resolutions.isEmpty {
                         lines.append("- \(item.identifier)")
                     } else {
@@ -136,7 +144,7 @@ public struct MarkdownReportWriter {
 
     private func appendWorkspaceCategoryCounts(from items: [WorkspaceItem], into lines: inout [String]) {
         if items.isEmpty {
-            lines.append("- (none)")
+            lines.append("- \(L10n.string(.placeholderNone, locale: locale))")
             return
         }
 
@@ -145,19 +153,20 @@ public struct MarkdownReportWriter {
             guard let count = grouped[category]?.count else {
                 continue
             }
-            lines.append("- \(category.rawValue): \(count)")
+            lines.append("- \(localizedCategoryName(category)): \(count)")
         }
     }
 
     private func appendManualTasksSection(_ manualTasks: [ManualTask], into lines: inout [String]) {
-        lines.append("## Manual Follow-up")
+        lines.append("## \(L10n.string(.reportManualFollowUpTitle, locale: locale))")
         if manualTasks.isEmpty {
-            lines.append("- (none)")
+            lines.append("- \(L10n.string(.placeholderNone, locale: locale))")
         } else {
             manualTasks.forEach {
-                lines.append("- \($0.title) [blocking: \($0.blocking ? "yes" : "no")]")
-                lines.append("  - reason: \($0.reason)")
-                lines.append("  - action: \($0.action)")
+                let blockingValue = $0.blocking ? L10n.string(.reportBlockingYes, locale: locale) : L10n.string(.reportBlockingNo, locale: locale)
+                lines.append("- \($0.title) [blocking: \(blockingValue)]")
+                lines.append("  - \(L10n.string(.reportReasonLabel, locale: locale)): \($0.reason)")
+                lines.append("  - \(L10n.string(.reportActionLabel, locale: locale)): \($0.action)")
             }
         }
     }
@@ -165,15 +174,62 @@ public struct MarkdownReportWriter {
     private func sectionTitle(for status: DriftStatus) -> String {
         switch status {
         case .modified:
-            return "Modified"
+            return L10n.string(.driftModified, locale: locale)
         case .missing:
-            return "Missing"
+            return L10n.string(.driftMissing, locale: locale)
         case .extra:
-            return "Extra"
+            return L10n.string(.driftExtra, locale: locale)
         case .manual:
-            return "Manual"
+            return L10n.string(.driftManual, locale: locale)
         case .unsupported:
-            return "Unsupported"
+            return L10n.string(.driftUnsupported, locale: locale)
+        }
+    }
+
+    private func localizedToolName(_ tool: WorkspaceTool) -> String {
+        switch tool {
+        case .homebrew:
+            return L10n.string(.workspaceToolHomebrew, locale: locale)
+        case .chezmoi:
+            return L10n.string(.workspaceToolChezmoi, locale: locale)
+        case .plainDotfiles:
+            return L10n.string(.workspaceToolPlainDotfiles, locale: locale)
+        case .git:
+            return L10n.string(.workspaceToolGit, locale: locale)
+        case .vscode:
+            return L10n.string(.workspaceToolVSCode, locale: locale)
+        case .mise:
+            return L10n.string(.workspaceToolMise, locale: locale)
+        case .asdf:
+            return L10n.string(.workspaceToolAsdf, locale: locale)
+        }
+    }
+
+    private func localizedCategoryName(_ category: WorkspaceItemCategory) -> String {
+        switch category {
+        case .homebrew:
+            return L10n.string(.workspaceCategoryHomebrew, locale: locale)
+        case .dotfiles:
+            return L10n.string(.workspaceCategoryDotfiles, locale: locale)
+        case .gitGlobal:
+            return L10n.string(.workspaceCategoryGitGlobal, locale: locale)
+        case .vscode:
+            return L10n.string(.workspaceCategoryVSCode, locale: locale)
+        case .toolVersions:
+            return L10n.string(.workspaceCategoryToolVersions, locale: locale)
+        case .manual:
+            return L10n.string(.workspaceCategoryManual, locale: locale)
+        }
+    }
+
+    private func localizedResolutionName(_ resolution: DriftResolution) -> String {
+        switch resolution {
+        case .apply:
+            return L10n.string(.workspaceResolutionApply, locale: locale)
+        case .promote:
+            return L10n.string(.workspaceResolutionPromote, locale: locale)
+        case .ignore:
+            return L10n.string(.workspaceResolutionIgnore, locale: locale)
         }
     }
 

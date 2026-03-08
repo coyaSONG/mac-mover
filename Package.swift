@@ -3,9 +3,11 @@ import PackageDescription
 
 let package = Package(
     name: "MacMover",
+    defaultLocalization: "en",
     platforms: [.macOS(.v13)],
     products: [
         .executable(name: "MacMover", targets: ["App"]),
+        .library(name: "Localization", targets: ["Localization"]),
         .library(name: "SharedModels", targets: ["SharedModels"]),
         .library(name: "Core", targets: ["Core"]),
         .library(name: "Reporting", targets: ["Reporting"]),
@@ -17,27 +19,31 @@ let package = Package(
     ],
     targets: [
         .target(
+            name: "Localization",
+            resources: [.process("Resources")]
+        ),
+        .target(
             name: "SharedModels"
         ),
         .target(
             name: "Core",
-            dependencies: ["SharedModels"]
+            dependencies: ["SharedModels", "Localization"]
         ),
         .target(
             name: "Reporting",
-            dependencies: ["SharedModels", "Core"]
+            dependencies: ["SharedModels", "Core", "Localization"]
         ),
         .target(
             name: "Exporters",
-            dependencies: ["Core", "SharedModels", "Reporting"]
+            dependencies: ["Core", "SharedModels", "Reporting", "Localization"]
         ),
         .target(
             name: "Importers",
-            dependencies: ["Core", "SharedModels", "Reporting"]
+            dependencies: ["Core", "SharedModels", "Reporting", "Localization"]
         ),
         .executableTarget(
             name: "App",
-            dependencies: ["Core", "SharedModels", "Exporters", "Importers", "Reporting"],
+            dependencies: ["Core", "SharedModels", "Exporters", "Importers", "Reporting", "Localization"],
             path: "Sources/App",
             exclude: ["Info.plist"],
             linkerSettings: [
@@ -55,6 +61,7 @@ let package = Package(
                 "Core",
                 "SharedModels",
                 "Reporting",
+                "Localization",
                 .product(name: "Testing", package: "swift-testing")
             ]
         ),
@@ -84,6 +91,7 @@ let package = Package(
                 "Core",
                 "SharedModels",
                 "Reporting",
+                "Localization",
                 .product(name: "Testing", package: "swift-testing")
             ]
         )

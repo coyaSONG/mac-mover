@@ -1,4 +1,7 @@
 import SwiftUI
+#if canImport(Localization)
+import Localization
+#endif
 
 struct ContentView: View {
     @EnvironmentObject private var appState: AppState
@@ -8,17 +11,17 @@ struct ContentView: View {
             header
             TabView {
                 OverviewTab()
-                    .tabItem { Label("Overview", systemImage: "house") }
+                    .tabItem { Label(L10n.string(.appTabOverview), systemImage: "house") }
                 RepoTab()
-                    .tabItem { Label("Repo", systemImage: "folder.badge.gearshape") }
+                    .tabItem { Label(L10n.string(.appTabRepo), systemImage: "folder.badge.gearshape") }
                 DriftTab()
-                    .tabItem { Label("Drift", systemImage: "arrow.left.and.right.righttriangle.left.righttriangle.right") }
+                    .tabItem { Label(L10n.string(.appTabDrift), systemImage: "arrow.left.and.right.righttriangle.left.righttriangle.right") }
                 ExportTab()
-                    .tabItem { Label("Export", systemImage: "square.and.arrow.up") }
+                    .tabItem { Label(L10n.string(.appTabExport), systemImage: "square.and.arrow.up") }
                 ImportTab()
-                    .tabItem { Label("Import", systemImage: "square.and.arrow.down") }
+                    .tabItem { Label(L10n.string(.appTabImport), systemImage: "square.and.arrow.down") }
                 ReportsTab()
-                    .tabItem { Label("Reports", systemImage: "doc.text") }
+                    .tabItem { Label(L10n.string(.appTabReports), systemImage: "doc.text") }
             }
             .padding(.horizontal, 16)
             .padding(.bottom, 16)
@@ -29,7 +32,7 @@ struct ContentView: View {
     private var header: some View {
         HStack {
             VStack(alignment: .leading, spacing: 2) {
-                Text("MacMover")
+                Text(L10n.string(.appTitle))
                     .font(.title2)
                     .bold()
                 Text(appState.statusMessage)
@@ -40,7 +43,7 @@ struct ContentView: View {
             }
             Spacer()
             if let workspace = appState.connectedWorkspace {
-                Label(workspace.detectedTools.count == 1 ? "1 tool detected" : "\(workspace.detectedTools.count) tools detected", systemImage: "wrench.and.screwdriver")
+                Label(L10n.format(.workspaceDetectedToolsCount, workspace.detectedTools.count), systemImage: "wrench.and.screwdriver")
                     .font(.caption)
                     .foregroundStyle(Color.appMuted)
             }

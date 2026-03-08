@@ -1,6 +1,9 @@
 import Foundation
 import SwiftUI
 import AppKit
+#if canImport(Localization)
+import Localization
+#endif
 import SharedModels
 import Core
 import Reporting
@@ -35,20 +38,21 @@ extension DriftEngine: DriftComparing {}
 final class AppState: ObservableObject {
     @Published var machineSummary: String = ""
     @Published var workspacePath: String = ""
-    @Published var workspaceScanSummary: String = "No workspace scan executed"
-    @Published var workspaceDriftSummary: String = "No workspace drift computed"
-    @Published var workspaceApplySummary: String = "No workspace apply preview"
-    @Published var workspacePromoteSummary: String = "No workspace promote preview"
+    @Published var workspaceScanSummary: String = L10n.string(.placeholderNoWorkspaceScanExecuted)
+    @Published var workspaceDriftSummary: String = L10n.string(.placeholderNoWorkspaceDriftComputed)
+    @Published var workspaceApplySummary: String = L10n.string(.placeholderNoWorkspaceApplyPreview)
+    @Published var workspacePromoteSummary: String = L10n.string(.placeholderNoWorkspacePromotePreview)
     @Published var exportPath: String = ""
     @Published var importPath: String = ""
-    @Published var exportSummary: String = "No export executed"
-    @Published var importSummary: String = "No import executed"
-    @Published var verifySummary: String = "No verify executed"
+    @Published var exportSummary: String = L10n.string(.placeholderNoExportExecuted)
+    @Published var importSummary: String = L10n.string(.placeholderNoImportExecuted)
+    @Published var verifySummary: String = L10n.string(.placeholderNoVerifyExecuted)
     @Published var manualTasks: [ManualTask] = []
     @Published var preflightChecks: [PreflightCheck] = []
-    @Published var logsPreview: String = "No logs"
-    @Published var statusMessage: String = "Idle"
+    @Published var logsPreview: String = L10n.string(.placeholderNoLogs)
+    @Published var statusMessage: String = L10n.string(.statusIdle)
     @Published var isRunning: Bool = false
+    @Published private(set) var isWorkspaceScanRunning: Bool = false
 
     @Published var connectedWorkspace: ConnectedWorkspace?
     @Published var repoSnapshot: RepoSnapshot?
@@ -58,11 +62,19 @@ final class AppState: ObservableObject {
     @Published var lastImportBundleURL: URL?
     @Published private(set) var machineInfo: MachineInfo?
 
-    var machineHost: String { machineInfo?.hostname ?? "Unknown" }
-    var machineArch: String { machineInfo?.architecture.rawValue ?? "Unknown" }
-    var machineOS: String { machineInfo?.macosVersion ?? "Unknown" }
-    var machineHome: String { machineInfo?.homeDirectory ?? "Unknown" }
-    var machineBrewPrefix: String { machineInfo?.homebrewPrefix ?? "Unknown" }
+    var machineHost: String { machineInfo?.hostname ?? L10n.string(.labelUnknown) }
+    var machineArch: String { machineInfo?.architecture.rawValue ?? L10n.string(.labelUnknown) }
+    var machineOS: String { machineInfo?.macosVersion ?? L10n.string(.labelUnknown) }
+    var machineHome: String { machineInfo?.homeDirectory ?? L10n.string(.labelUnknown) }
+    var machineBrewPrefix: String { machineInfo?.homebrewPrefix ?? L10n.string(.labelUnknown) }
+    var connectedWorkspaceToolSummary: String? {
+        guard let connectedWorkspace else {
+            return nil
+        }
+
+        let summary = connectedWorkspace.detectedTools.map(localizedToolName).sorted().joined(separator: ", ")
+        return summary.isEmpty ? nil : summary
+    }
 
     private let preflightService: PreflightService
     private let bundlePreviewLoader: any BundlePreviewLoading
@@ -127,7 +139,7 @@ final class AppState: ObservableObject {
         panel.canChooseDirectories = true
         panel.canCreateDirectories = false
         panel.allowsMultipleSelection = false
-        panel.prompt = "Select"
+        panel.prompt = L10n.string(.actionSelect)
         if panel.runModal() == .OK, let url = panel.url {
             workspacePath = url.path
             Task {
@@ -142,7 +154,7 @@ final class AppState: ObservableObject {
         panel.canChooseDirectories = true
         panel.canCreateDirectories = true
         panel.allowsMultipleSelection = false
-        panel.prompt = "Select"
+        panel.prompt = L10n.string(.actionSelect)
         if panel.runModal() == .OK, let url = panel.url {
             exportPath = url.appendingPathComponent("MacDevEnvExport").path
         }
@@ -154,7 +166,7 @@ final class AppState: ObservableObject {
         panel.canChooseDirectories = true
         panel.canCreateDirectories = false
         panel.allowsMultipleSelection = false
-        panel.prompt = "Select"
+        panel.prompt = L10n.string(.actionSelect)
         if panel.runModal() == .OK, let url = panel.url {
             importPath = url.path
             runImportPreflight(bundleURL: url)
@@ -163,9 +175,13 @@ final class AppState: ObservableObject {
 
     func connectWorkspace(at url: URL) async {
         workspacePath = url.path
-        statusMessage = "Workspace scan running..."
+        statusMessage = L10n.string(.statusWorkspaceScanRunning)
         isRunning = true
-        defer { isRunning = false }
+        isWorkspaceScanRunning = true
+        defer {
+            isRunning = false
+            isWorkspaceScanRunning = false
+        }
 
         do {
             var workspace = try workspaceDetector.detect(at: url)
@@ -193,32 +209,32 @@ final class AppState: ObservableObject {
                 generatedAt: workspace.lastScannedAt ?? Date()
             )
             workspaceApplySummary = makeWorkspacePreviewSummary(
-                title: "Workspace Apply Preview",
+                title: L10n.string(.workspaceApplyPreviewTitle),
                 resolution: .apply,
                 driftItems: driftItems
             )
             workspacePromoteSummary = makeWorkspacePreviewSummary(
-                title: "Workspace Promote Preview",
+                title: L10n.string(.workspacePromotePreviewTitle),
                 resolution: .promote,
                 driftItems: driftItems
             )
-            statusMessage = driftItems.isEmpty ? "Workspace scan completed" : "Workspace scan completed with drift"
+            statusMessage = driftItems.isEmpty ? L10n.string(.statusWorkspaceScanCompleted) : L10n.string(.statusWorkspaceScanCompletedWithDrift)
         } catch {
             connectedWorkspace = nil
             repoSnapshot = nil
             environmentSnapshot = nil
             driftItems = []
-            workspaceScanSummary = "No workspace scan executed"
-            workspaceDriftSummary = "No workspace drift computed"
-            workspaceApplySummary = "No workspace apply preview"
-            workspacePromoteSummary = "No workspace promote preview"
-            statusMessage = "Workspace scan failed: \(error.localizedDescription)"
+            workspaceScanSummary = L10n.string(.placeholderNoWorkspaceScanExecuted)
+            workspaceDriftSummary = L10n.string(.placeholderNoWorkspaceDriftComputed)
+            workspaceApplySummary = L10n.string(.placeholderNoWorkspaceApplyPreview)
+            workspacePromoteSummary = L10n.string(.placeholderNoWorkspacePromotePreview)
+            statusMessage = L10n.format(.statusWorkspaceScanFailed, error.localizedDescription)
         }
     }
 
     func runExport() {
         let destination = URL(fileURLWithPath: exportPath)
-        statusMessage = "Export running..."
+        statusMessage = L10n.string(.statusExportRunning)
 
         Task {
             isRunning = true
@@ -232,9 +248,9 @@ final class AppState: ObservableObject {
                 verifySummary = artifactReader.readText(at: destination.appendingPathComponent("reports/verify-summary.md"))
                 logsPreview = artifactReader.readLogPreview(at: destination.appendingPathComponent("logs"))
                 machineSummary = machineSummaryProvider()
-                statusMessage = "Export completed"
+                statusMessage = L10n.string(.statusExportCompleted)
             } catch {
-                statusMessage = "Export failed: \(error.localizedDescription)"
+                statusMessage = L10n.format(.statusExportFailed, error.localizedDescription)
             }
         }
     }
@@ -250,28 +266,28 @@ final class AppState: ObservableObject {
             verifySummary = preview.verifySummary
             logsPreview = preview.logsPreview
             machineSummary = machineSummaryProvider()
-            statusMessage = preview.preflight.hasBlockingFailure ? "Import bundle has blocking preflight issues" : "Import bundle ready"
+            statusMessage = preview.preflight.hasBlockingFailure ? L10n.string(.statusImportBundleBlockingPreflight) : L10n.string(.statusImportBundleReady)
         } catch {
             lastImportBundleURL = nil
             manualTasks = []
             preflightChecks = []
-            exportSummary = "No export executed"
-            importSummary = "No import executed"
-            verifySummary = "No verify executed"
-            logsPreview = "No logs"
+            exportSummary = L10n.string(.placeholderNoExportExecuted)
+            importSummary = L10n.string(.placeholderNoImportExecuted)
+            verifySummary = L10n.string(.placeholderNoVerifyExecuted)
+            logsPreview = L10n.string(.placeholderNoLogs)
             machineSummary = machineSummaryProvider()
-            statusMessage = "Import preflight failed: \(error.localizedDescription)"
+            statusMessage = L10n.format(.statusImportPreflightFailed, error.localizedDescription)
         }
     }
 
     func runImport() {
         guard !importPath.isEmpty else {
-            statusMessage = "Select an import bundle first"
+            statusMessage = L10n.string(.statusSelectImportBundleFirst)
             return
         }
 
         let source = URL(fileURLWithPath: importPath)
-        statusMessage = "Import running..."
+        statusMessage = L10n.string(.statusImportRunning)
 
         Task {
             isRunning = true
@@ -284,21 +300,21 @@ final class AppState: ObservableObject {
                 importSummary = artifactReader.readText(at: source.appendingPathComponent("reports/import-summary.md"))
                 verifySummary = artifactReader.readText(at: source.appendingPathComponent("reports/verify-summary.md"))
                 logsPreview = artifactReader.readLogPreview(at: source.appendingPathComponent("logs"))
-                statusMessage = "Import completed"
+                statusMessage = L10n.string(.statusImportCompleted)
             } catch {
-                statusMessage = "Import failed: \(error.localizedDescription)"
+                statusMessage = L10n.format(.statusImportFailed, error.localizedDescription)
             }
         }
     }
 
     func runVerify() {
         guard !importPath.isEmpty else {
-            statusMessage = "Select an import bundle first"
+            statusMessage = L10n.string(.statusSelectImportBundleFirst)
             return
         }
 
         let source = URL(fileURLWithPath: importPath)
-        statusMessage = "Verify running..."
+        statusMessage = L10n.string(.statusVerifyRunning)
 
         Task {
             isRunning = true
@@ -309,7 +325,7 @@ final class AppState: ObservableObject {
                 preflightChecks = preflight.checks
 
                 if preflight.hasBlockingFailure {
-                    statusMessage = "Verify blocked by preflight"
+                    statusMessage = L10n.string(.statusVerifyBlockedByPreflight)
                     return
                 }
 
@@ -319,16 +335,23 @@ final class AppState: ObservableObject {
                 manualTasks = manifest.manualTasks
                 verifySummary = artifactReader.readText(at: source.appendingPathComponent("reports/verify-summary.md"))
                 logsPreview = artifactReader.readLogPreview(at: source.appendingPathComponent("logs"))
-                statusMessage = report.failures.isEmpty ? "Verify completed" : "Verify completed with failures"
+                statusMessage = report.failures.isEmpty ? L10n.string(.statusVerifyCompleted) : L10n.string(.statusVerifyCompletedWithFailures)
             } catch {
-                statusMessage = "Verify failed: \(error.localizedDescription)"
+                statusMessage = L10n.format(.statusVerifyFailed, error.localizedDescription)
             }
         }
     }
 
     private static func buildMachineSummary() -> String {
         let machine = MachineInfoCollector().collect()
-        return "Host: \(machine.hostname)\nArchitecture: \(machine.architecture.rawValue)\nmacOS: \(machine.macosVersion)\nHome: \(machine.homeDirectory)\nBrew Prefix: \(machine.homebrewPrefix)"
+        return L10n.format(
+            .machineSummaryFormat,
+            machine.hostname,
+            machine.architecture.rawValue,
+            machine.macosVersion,
+            machine.homeDirectory,
+            machine.homebrewPrefix
+        )
     }
 
     private func makeWorkspacePreviewSummary(
@@ -340,15 +363,49 @@ final class AppState: ObservableObject {
         var lines: [String] = []
         lines.append("# \(title)")
         lines.append("")
-        lines.append("Ready items: \(selectedItems.count)")
+        lines.append(L10n.format(.workspacePreviewReadyItemsCount, selectedItems.count))
         lines.append("")
         if selectedItems.isEmpty {
-            lines.append("- (none)")
+            lines.append("- \(L10n.string(.placeholderNone))")
         } else {
             for item in selectedItems.sorted(by: { $0.identifier < $1.identifier }) {
-                lines.append("- \(item.identifier) [\(item.status.rawValue)]")
+                lines.append("- \(item.identifier) [\(localizedDriftStatusLabel(for: item.status))]")
             }
         }
         return lines.joined(separator: "\n")
+    }
+
+    private func localizedDriftStatusLabel(for status: DriftStatus) -> String {
+        switch status {
+        case .modified:
+            return L10n.string(.driftModified)
+        case .missing:
+            return L10n.string(.driftMissing)
+        case .extra:
+            return L10n.string(.driftExtra)
+        case .manual:
+            return L10n.string(.driftManual)
+        case .unsupported:
+            return L10n.string(.driftUnsupported)
+        }
+    }
+
+    private func localizedToolName(_ tool: WorkspaceTool) -> String {
+        switch tool {
+        case .homebrew:
+            return L10n.string(.workspaceToolHomebrew)
+        case .chezmoi:
+            return L10n.string(.workspaceToolChezmoi)
+        case .plainDotfiles:
+            return L10n.string(.workspaceToolPlainDotfiles)
+        case .git:
+            return L10n.string(.workspaceToolGit)
+        case .vscode:
+            return L10n.string(.workspaceToolVSCode)
+        case .mise:
+            return L10n.string(.workspaceToolMise)
+        case .asdf:
+            return L10n.string(.workspaceToolAsdf)
+        }
     }
 }

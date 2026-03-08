@@ -1,4 +1,7 @@
 import SwiftUI
+#if canImport(Localization)
+import Localization
+#endif
 
 struct ReportsTab: View {
     @EnvironmentObject private var appState: AppState
@@ -16,49 +19,49 @@ struct ReportsTab: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 reportSection(
-                    title: "Workspace Scan",
+                    title: L10n.string(.reportsWorkspaceScanTitle),
                     icon: "doc.text.magnifyingglass",
                     content: appState.workspaceScanSummary,
                     isExpanded: $workspaceScanExpanded
                 )
                 reportSection(
-                    title: "Workspace Drift",
+                    title: L10n.string(.reportsWorkspaceDriftTitle),
                     icon: "arrow.left.and.right.righttriangle.left.righttriangle.right",
                     content: appState.workspaceDriftSummary,
                     isExpanded: $workspaceDriftExpanded
                 )
                 reportSection(
-                    title: "Apply Preview",
+                    title: L10n.string(.workspaceApplyPreviewTitle),
                     icon: "square.and.arrow.down.on.square",
                     content: appState.workspaceApplySummary,
                     isExpanded: $workspaceApplyExpanded
                 )
                 reportSection(
-                    title: "Promote Preview",
+                    title: L10n.string(.workspacePromotePreviewTitle),
                     icon: "square.and.arrow.up.on.square",
                     content: appState.workspacePromoteSummary,
                     isExpanded: $workspacePromoteExpanded
                 )
                 reportSection(
-                    title: "Legacy Export Report",
+                    title: L10n.string(.reportsLegacyExportTitle),
                     icon: "square.and.arrow.up",
                     content: appState.exportSummary,
                     isExpanded: $exportExpanded
                 )
                 reportSection(
-                    title: "Legacy Import Report",
+                    title: L10n.string(.reportsLegacyImportTitle),
                     icon: "square.and.arrow.down",
                     content: appState.importSummary,
                     isExpanded: $importExpanded
                 )
                 reportSection(
-                    title: "Legacy Verify Report",
+                    title: L10n.string(.reportsLegacyVerifyTitle),
                     icon: "checkmark.shield",
                     content: appState.verifySummary,
                     isExpanded: $verifyExpanded
                 )
                 reportSection(
-                    title: "Logs",
+                    title: L10n.string(.reportsLogsTitle),
                     icon: "text.alignleft",
                     content: appState.logsPreview,
                     isExpanded: $logsExpanded,

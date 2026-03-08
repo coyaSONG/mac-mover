@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+@testable import Localization
 @testable import SharedModels
 @testable import Reporting
 @testable import Core
@@ -7,24 +8,26 @@ import Testing
 struct WorkspaceReportTests {
     @Test
     func rendersWorkspaceScanSummaryWithDetectedToolsAndCounts() {
-        let writer = MarkdownReportWriter()
+        let writer = MarkdownReportWriter(locale: Locale(identifier: "en"))
         let workspace = ConnectedWorkspace(
             rootPath: "/tmp/dev-env-repo",
-            detectedTools: [.chezmoi, .homebrew, .vscode],
+            detectedTools: [.chezmoi, .homebrew, .plainDotfiles],
             lastScannedAt: Date(timeIntervalSince1970: 1_700_000_000)
         )
         let repoSnapshot = RepoSnapshot(
             capturedAt: Date(timeIntervalSince1970: 1_700_000_010),
             items: [
                 WorkspaceItem(category: .dotfiles, identifier: "~/.zshrc", value: .string("repo")),
-                WorkspaceItem(category: .homebrew, identifier: "git", value: .string("brew"))
+                WorkspaceItem(category: .gitGlobal, identifier: "user.email", value: .string("repo")),
+                WorkspaceItem(category: .toolVersions, identifier: "node", value: .string("22.0.0"))
             ]
         )
         let environmentSnapshot = EnvironmentSnapshot(
             capturedAt: Date(timeIntervalSince1970: 1_700_000_020),
             items: [
                 WorkspaceItem(category: .dotfiles, identifier: "~/.zshrc", value: .string("local")),
-                WorkspaceItem(category: .homebrew, identifier: "git", value: .string("brew")),
+                WorkspaceItem(category: .gitGlobal, identifier: "user.email", value: .string("local")),
+                WorkspaceItem(category: .toolVersions, identifier: "node", value: .string("22.0.0")),
                 WorkspaceItem(category: .vscode, identifier: "settings.json", value: .string("hash"))
             ]
         )
@@ -38,15 +41,21 @@ struct WorkspaceReportTests {
         #expect(markdown.contains("# Workspace Scan Summary"))
         #expect(markdown.contains("/tmp/dev-env-repo"))
         #expect(markdown.contains("chezmoi"))
-        #expect(markdown.contains("homebrew"))
-        #expect(markdown.contains("vscode"))
-        #expect(markdown.contains("Repo items: 2"))
-        #expect(markdown.contains("Local items: 3"))
+        #expect(markdown.contains("Homebrew"))
+        #expect(!markdown.contains("homebrew"))
+        #expect(markdown.contains("Plain Dotfiles"))
+        #expect(!markdown.contains("plain_dotfiles"))
+        #expect(markdown.contains("Git Global"))
+        #expect(!markdown.contains("git_global"))
+        #expect(markdown.contains("Tool Versions"))
+        #expect(!markdown.contains("tool_versions"))
+        #expect(markdown.contains("Repo items: 3"))
+        #expect(markdown.contains("Local items: 4"))
     }
 
     @Test
     func rendersWorkspaceDriftSummaryWithStatusSectionsAndManualTasks() {
-        let writer = MarkdownReportWriter()
+        let writer = MarkdownReportWriter(locale: Locale(identifier: "en"))
         let driftItems = [
             DriftItem(
                 category: .dotfiles,
@@ -93,6 +102,10 @@ struct WorkspaceReportTests {
         #expect(markdown.contains("## Modified"))
         #expect(markdown.contains("## Missing"))
         #expect(markdown.contains("## Extra"))
+        #expect(markdown.contains("[Apply, Promote]"))
+        #expect(markdown.contains("[Promote, Ignore]"))
+        #expect(!markdown.contains("[apply, promote]"))
+        #expect(!markdown.contains("[promote, ignore]"))
         #expect(markdown.contains("~/.zshrc"))
         #expect(markdown.contains("wget"))
         #expect(markdown.contains("settings.json"))
@@ -101,9 +114,26 @@ struct WorkspaceReportTests {
     }
 
     @Test
+    func rendersWorkspaceDriftSummaryInKorean() {
+        let writer = MarkdownReportWriter(locale: Locale(identifier: "ko"))
+
+        let markdown = writer.renderWorkspaceDriftSummary(
+            driftItems: [],
+            manualTasks: [],
+            generatedAt: Date(timeIntervalSince1970: 1_700_000_030)
+        )
+
+        #expect(markdown.contains("## 수정됨"))
+        #expect(markdown.contains("## 수동 후속 작업"))
+    }
+
+    @Test
     func writesWorkspaceScanAndDriftReportsToDisk() throws {
         let fileSystem = InMemoryFileSystem(directories: ["/tmp/reports"])
-        let writer = ReportFileWriter(fileSystem: fileSystem)
+        let writer = ReportFileWriter(
+            fileSystem: fileSystem,
+            markdownWriter: MarkdownReportWriter(locale: Locale(identifier: "en"))
+        )
         let workspace = ConnectedWorkspace(rootPath: "/tmp/dev-env-repo", detectedTools: [.plainDotfiles])
         let repoSnapshot = RepoSnapshot(items: [WorkspaceItem(category: .dotfiles, identifier: "~/.zshrc", value: .string("repo"))])
         let environmentSnapshot = EnvironmentSnapshot(items: [WorkspaceItem(category: .dotfiles, identifier: "~/.zshrc", value: .string("local"))])

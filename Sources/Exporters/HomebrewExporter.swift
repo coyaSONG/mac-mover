@@ -1,4 +1,5 @@
 import Foundation
+import Localization
 import SharedModels
 import Core
 
@@ -6,15 +7,18 @@ struct HomebrewExporter {
     private let runner: CommandRunning
     private let fileSystem: FileSysteming
     private let manualTaskEngine: ManualTaskEngine
+    private let locale: Locale?
 
     init(
         runner: CommandRunning,
         fileSystem: FileSysteming,
-        manualTaskEngine: ManualTaskEngine
+        manualTaskEngine: ManualTaskEngine,
+        locale: Locale? = nil
     ) {
         self.runner = runner
         self.fileSystem = fileSystem
         self.manualTaskEngine = manualTaskEngine
+        self.locale = locale
     }
 
     func export(to layout: BundleLayout) -> ComponentExportResult {
@@ -25,9 +29,9 @@ struct HomebrewExporter {
             result.skipped.append(
                 StepResult(
                     id: "export.brew",
-                    title: "Homebrew export",
+                    title: L10n.string(.exportHomebrewTitle, locale: locale),
                     status: .skipped,
-                    detail: "brew command not found"
+                    detail: L10n.string(.exportBrewCommandNotFound, locale: locale)
                 )
             )
             return result
@@ -46,7 +50,7 @@ struct HomebrewExporter {
                 StepResult(id: "export.brew.brewfile", title: "Brewfile", status: .failed, detail: error.localizedDescription)
             )
             if !fileSystem.fileExists(at: layout.brewfileURL) {
-                result.warnings.append("Brewfile creation failed; package restore accuracy may be reduced.")
+                result.warnings.append(L10n.string(.exportBrewfileCreationFailedWarning, locale: locale))
             }
         }
 
@@ -69,7 +73,7 @@ struct HomebrewExporter {
             result.successes.append(
                 StepResult(
                     id: "export.brew.formula.\(IdentifierSanitizer.sanitize(formula))",
-                    title: "brew formula \(formula)",
+                    title: L10n.format(.exportBrewFormulaTitle, locale: locale, formula),
                     status: .success,
                     detail: formula
                 )
@@ -95,7 +99,7 @@ struct HomebrewExporter {
             result.successes.append(
                 StepResult(
                     id: "export.brew.cask.\(IdentifierSanitizer.sanitize(cask))",
-                    title: "brew cask \(cask)",
+                    title: L10n.format(.exportBrewCaskTitle, locale: locale, cask),
                     status: .success,
                     detail: cask
                 )
@@ -121,7 +125,7 @@ struct HomebrewExporter {
             result.successes.append(
                 StepResult(
                     id: "export.brew.tap.\(IdentifierSanitizer.sanitize(tap))",
-                    title: "brew tap \(tap)",
+                    title: L10n.format(.exportBrewTapTitle, locale: locale, tap),
                     status: .success,
                     detail: tap
                 )
@@ -150,7 +154,7 @@ struct HomebrewExporter {
             result.successes.append(
                 StepResult(
                     id: "export.brew.service.\(IdentifierSanitizer.sanitize(service))",
-                    title: "brew service \(service)",
+                    title: L10n.format(.exportBrewServiceTitle, locale: locale, service),
                     status: .success,
                     detail: service
                 )

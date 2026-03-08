@@ -1,4 +1,5 @@
 import Foundation
+import Localization
 import SharedModels
 import Core
 import Reporting
@@ -13,6 +14,7 @@ public struct ImportCoordinator {
     private let manualTaskEngine: ManualTaskEngine
     private let reportWriter: ReportFileWriter
     private let verifyEngine: VerifyEngine
+    private let locale: Locale?
 
     public init(
         runner: CommandRunning = ProcessCommandRunner(),
@@ -23,17 +25,19 @@ public struct ImportCoordinator {
         fileRestorer: FileRestorer? = nil,
         manualTaskEngine: ManualTaskEngine = ManualTaskEngine(),
         reportWriter: ReportFileWriter? = nil,
-        verifyEngine: VerifyEngine? = nil
+        verifyEngine: VerifyEngine? = nil,
+        locale: Locale? = nil
     ) {
+        self.locale = locale
         self.runner = runner
         self.fileSystem = fileSystem
         self.bundleValidator = bundleValidator ?? BundleValidator(fileSystem: fileSystem, manifestStore: manifestStore ?? ManifestStore(fileSystem: fileSystem))
         self.manifestStore = manifestStore ?? ManifestStore(fileSystem: fileSystem)
-        self.preflightService = preflightService ?? PreflightService(runner: runner, fileSystem: fileSystem)
+        self.preflightService = preflightService ?? PreflightService(runner: runner, fileSystem: fileSystem, locale: locale)
         self.fileRestorer = fileRestorer ?? FileRestorer(fileSystem: fileSystem)
-        self.manualTaskEngine = manualTaskEngine
-        self.reportWriter = reportWriter ?? ReportFileWriter(fileSystem: fileSystem)
-        self.verifyEngine = verifyEngine ?? VerifyEngine(fileSystem: fileSystem, runner: runner)
+        self.manualTaskEngine = manualTaskEngine.locale == locale ? manualTaskEngine : ManualTaskEngine(locale: locale)
+        self.reportWriter = reportWriter ?? ReportFileWriter(fileSystem: fileSystem, markdownWriter: MarkdownReportWriter(locale: locale))
+        self.verifyEngine = verifyEngine ?? VerifyEngine(fileSystem: fileSystem, runner: runner, locale: locale)
     }
 
     public func `import`(from bundleURL: URL) throws -> ImportResult {
@@ -47,7 +51,7 @@ public struct ImportCoordinator {
         let preflight = preflightService.run(mode: .import(bundle: bundleURL))
         if preflight.hasBlockingFailure {
             logger.log(.error, message: "preflight_blocked", context: ["bundlePath": bundleURL.path])
-            throw MoverError.blockedByPreflight("Import preflight has blocking failures")
+            throw MoverError.blockedByPreflight(L10n.string(.statusImportBundleBlockingPreflight, locale: locale))
         }
 
         var aggregate = ComponentImportResult()
@@ -63,15 +67,15 @@ public struct ImportCoordinator {
         if !brewAvailable {
             aggregate.manualTasks.append(manualTaskEngine.taskForMissingBrew())
             aggregate.skipped.append(
-                StepResult(id: "import.packages", title: "Homebrew packages", status: .skipped, detail: "brew missing; bootstrap manual task added")
+                StepResult(id: "import.packages", title: L10n.string(.importPackagesTitle, locale: locale), status: .skipped, detail: L10n.string(.importPackagesBrewMissing, locale: locale))
             )
         } else if fileSystem.fileExists(at: layout.brewfileURL) {
             do {
                 _ = try runner.run(executable: "/usr/bin/env", arguments: ["brew", "bundle", "--file", layout.brewfileURL.path])
-                aggregate.successes.append(StepResult(id: "import.packages", title: "Brewfile restore", status: .success, detail: "brew bundle applied"))
+                aggregate.successes.append(StepResult(id: "import.packages", title: L10n.string(.importBrewfileRestoreTitle, locale: locale), status: .success, detail: L10n.string(.importBrewBundleApplied, locale: locale)))
                 logger.log(.info, message: "brew_bundle_applied", context: ["path": layout.brewfileURL.path])
             } catch {
-                aggregate.failures.append(StepResult(id: "import.packages", title: "Brewfile restore", status: .failed, detail: error.localizedDescription))
+                aggregate.failures.append(StepResult(id: "import.packages", title: L10n.string(.importBrewfileRestoreTitle, locale: locale), status: .failed, detail: error.localizedDescription))
                 logger.log(.error, message: "brew_bundle_failed", context: ["error": error.localizedDescription])
             }
         }
@@ -81,7 +85,7 @@ public struct ImportCoordinator {
         aggregate.append(try applyVSCode(manifest: manifest, layout: layout, homeDirectory: preflight.machine.homeDirectory))
 
         var importReport = OperationReport(
-            title: "Import Summary",
+            title: L10n.string(.reportImportSummaryTitle, locale: locale),
             generatedAt: Date(),
             successes: aggregate.successes,
             failures: aggregate.failures,
@@ -92,7 +96,7 @@ public struct ImportCoordinator {
 
         let verifyReport = verifyEngine.verify(items: manifest.items, homeDirectory: preflight.machine.homeDirectory)
         if !verifyReport.failures.isEmpty {
-            importReport.warnings.append("Verify phase contains failed checks.")
+            importReport.warnings.append(L10n.string(.importVerifyFailedWarning, locale: locale))
         }
 
         try reportWriter.writeReport(importReport, to: layout.importSummaryURL)
@@ -117,7 +121,7 @@ public struct ImportCoordinator {
                 let relativePath = item.payload["relativePath"]?.stringValue,
                 let sourcePath = item.source?.path
             else {
-                result.skipped.append(StepResult(id: item.id, title: item.title, status: .skipped, detail: "missing source metadata"))
+                result.skipped.append(StepResult(id: item.id, title: item.title, status: .skipped, detail: L10n.string(.importMissingSourceMetadata, locale: locale)))
                 continue
             }
 
@@ -130,7 +134,7 @@ public struct ImportCoordinator {
                     result.manualTasks.append(manualTaskEngine.taskForOverwriteConfirmation(sourcePath))
                 }
                 let backup = try fileRestorer.restoreFile(from: sourceURL, to: destinationURL)
-                let detail = backup == nil ? "restored" : "restored with backup: \(backup!.lastPathComponent)"
+                let detail = backup == nil ? L10n.string(.importRestored, locale: locale) : L10n.format(.importRestoredWithBackup, locale: locale, backup!.lastPathComponent)
                 result.successes.append(StepResult(id: item.id, title: item.title, status: .success, detail: detail))
             } catch {
                 result.failures.append(StepResult(id: item.id, title: item.title, status: .failed, detail: error.localizedDescription))
@@ -146,7 +150,7 @@ public struct ImportCoordinator {
         guard !gitItems.isEmpty else { return result }
 
         guard runner.commandExists("git") else {
-            result.skipped.append(StepResult(id: "import.git", title: "Git global config", status: .skipped, detail: "git command not found"))
+            result.skipped.append(StepResult(id: "import.git", title: L10n.string(.importGitTitle, locale: locale), status: .skipped, detail: L10n.string(.exportGitCommandNotFound, locale: locale)))
             return result
         }
 
@@ -161,7 +165,7 @@ public struct ImportCoordinator {
                 result.failures.append(
                     StepResult(
                         id: "import.git.backup",
-                        title: "Git global config backup",
+                        title: L10n.string(.importGitBackupTitle, locale: locale),
                         status: .failed,
                         detail: error.localizedDescription
                     )
@@ -173,13 +177,13 @@ public struct ImportCoordinator {
         for item in gitItems {
             guard let key = item.payload["key"]?.stringValue,
                   let value = item.payload["value"]?.stringValue else {
-                result.skipped.append(StepResult(id: item.id, title: item.title, status: .skipped, detail: "missing key/value payload"))
+                result.skipped.append(StepResult(id: item.id, title: item.title, status: .skipped, detail: L10n.string(.importMissingKeyValuePayload, locale: locale)))
                 continue
             }
 
             do {
                 _ = try runner.run(executable: "/usr/bin/env", arguments: ["git", "config", "--global", key, value])
-                let detail = backupURL == nil ? "git config applied" : "git config applied with backup: \(backupURL!.lastPathComponent)"
+                let detail = backupURL == nil ? L10n.string(.importGitConfigApplied, locale: locale) : L10n.format(.importGitConfigAppliedWithBackup, locale: locale, backupURL!.lastPathComponent)
                 result.successes.append(StepResult(id: item.id, title: item.title, status: .success, detail: detail))
             } catch {
                 result.failures.append(StepResult(id: item.id, title: item.title, status: .failed, detail: error.localizedDescription))
@@ -197,7 +201,7 @@ public struct ImportCoordinator {
         for item in vscodeSettingsItems {
             guard let relativePath = item.payload["relativePath"]?.stringValue,
                   let targetPath = item.source?.path else {
-                result.skipped.append(StepResult(id: item.id, title: item.title, status: .skipped, detail: "missing vscode payload metadata"))
+                result.skipped.append(StepResult(id: item.id, title: item.title, status: .skipped, detail: L10n.string(.importMissingVSCodePayloadMetadata, locale: locale)))
                 continue
             }
 
@@ -217,13 +221,13 @@ public struct ImportCoordinator {
                         }
                         _ = try fileRestorer.restoreFile(from: child, to: targetChild)
                     }
-                    result.successes.append(StepResult(id: item.id, title: item.title, status: .success, detail: "directory restored"))
+                    result.successes.append(StepResult(id: item.id, title: item.title, status: .success, detail: L10n.string(.importDirectoryRestored, locale: locale)))
                 } else {
                     if fileSystem.fileExists(at: destinationURL) {
                         result.manualTasks.append(manualTaskEngine.taskForOverwriteConfirmation(destinationURL.path))
                     }
                     let backup = try fileRestorer.restoreFile(from: sourceURL, to: destinationURL)
-                    let detail = backup == nil ? "restored" : "restored with backup: \(backup!.lastPathComponent)"
+                    let detail = backup == nil ? L10n.string(.importRestored, locale: locale) : L10n.format(.importRestoredWithBackup, locale: locale, backup!.lastPathComponent)
                     result.successes.append(StepResult(id: item.id, title: item.title, status: .success, detail: detail))
                 }
             } catch {
@@ -233,13 +237,13 @@ public struct ImportCoordinator {
 
         if !vscodeExtensionItems.isEmpty && !runner.commandExists("code") {
             result.manualTasks.append(manualTaskEngine.taskForMissingCodeCLI())
-            result.skipped.append(StepResult(id: "import.vscode.extensions", title: "VS Code extensions", status: .skipped, detail: "code CLI not found"))
+            result.skipped.append(StepResult(id: "import.vscode.extensions", title: L10n.string(.importVSCodeExtensionsTitle, locale: locale), status: .skipped, detail: L10n.string(.exportVSCodeCodeCLINotFound, locale: locale)))
             return result
         }
 
         for item in vscodeExtensionItems {
             guard let identifier = item.payload["identifier"]?.stringValue else {
-                result.skipped.append(StepResult(id: item.id, title: item.title, status: .skipped, detail: "missing extension identifier"))
+                result.skipped.append(StepResult(id: item.id, title: item.title, status: .skipped, detail: L10n.string(.importMissingExtensionIdentifier, locale: locale)))
                 continue
             }
 
@@ -253,7 +257,7 @@ public struct ImportCoordinator {
 
             do {
                 _ = try runner.run(executable: "/usr/bin/env", arguments: ["code", "--install-extension", installArg, "--force"])
-                result.successes.append(StepResult(id: item.id, title: item.title, status: .success, detail: "extension installed"))
+                result.successes.append(StepResult(id: item.id, title: item.title, status: .success, detail: L10n.string(.importExtensionInstalled, locale: locale)))
             } catch {
                 result.failures.append(StepResult(id: item.id, title: item.title, status: .failed, detail: error.localizedDescription))
             }

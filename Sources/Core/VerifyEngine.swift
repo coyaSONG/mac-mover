@@ -1,21 +1,28 @@
 import Foundation
+import Localization
 import SharedModels
 
 public struct VerifyEngine {
     private let fileSystem: FileSysteming
     private let runner: CommandRunning
+    private let locale: Locale?
 
-    public init(fileSystem: FileSysteming = LocalFileSystem(), runner: CommandRunning = ProcessCommandRunner()) {
+    public init(
+        fileSystem: FileSysteming = LocalFileSystem(),
+        runner: CommandRunning = ProcessCommandRunner(),
+        locale: Locale? = nil
+    ) {
         self.fileSystem = fileSystem
         self.runner = runner
+        self.locale = locale
     }
 
     public func verify(items: [ManifestItem], homeDirectory: String) -> OperationReport {
-        var report = OperationReport(title: "Verify Report")
+        var report = OperationReport(title: L10n.string(.reportVerifyReportTitle, locale: locale))
 
         for item in items {
             guard let verify = item.verify else {
-                report.skipped.append(StepResult(id: item.id, title: item.title, status: .skipped, detail: "verify spec not provided"))
+                report.skipped.append(StepResult(id: item.id, title: item.title, status: .skipped, detail: L10n.string(.verifySpecNotProvided, locale: locale)))
                 continue
             }
 
@@ -23,9 +30,9 @@ public struct VerifyEngine {
                 let path = PathNormalizer.expandTilde(expectedFile, homeDirectory: homeDirectory)
                 let exists = fileSystem.fileExists(at: URL(fileURLWithPath: path))
                 if exists {
-                    report.successes.append(StepResult(id: item.id, title: item.title, status: .success, detail: "File exists: \(expectedFile)"))
+                    report.successes.append(StepResult(id: item.id, title: item.title, status: .success, detail: L10n.format(.verifyFileExists, locale: locale, expectedFile)))
                 } else {
-                    report.failures.append(StepResult(id: item.id, title: item.title, status: .failed, detail: "File missing: \(expectedFile)"))
+                    report.failures.append(StepResult(id: item.id, title: item.title, status: .failed, detail: L10n.format(.verifyFileMissing, locale: locale, expectedFile)))
                 }
                 continue
             }
@@ -33,7 +40,7 @@ public struct VerifyEngine {
             if let command = verify.command {
                 let parts = command.split(separator: " ").map(String.init)
                 guard let executableName = parts.first else {
-                    report.failures.append(StepResult(id: item.id, title: item.title, status: .failed, detail: "Invalid verify command"))
+                    report.failures.append(StepResult(id: item.id, title: item.title, status: .failed, detail: L10n.string(.verifyInvalidCommand, locale: locale)))
                     continue
                 }
 
@@ -50,12 +57,12 @@ public struct VerifyEngine {
                     if let expectedValue = verify.expectedValue?.stringValue {
                         let output = result.stdout.trimmingCharacters(in: .whitespacesAndNewlines)
                         if output == expectedValue || output.contains(expectedValue) {
-                            report.successes.append(StepResult(id: item.id, title: item.title, status: .success, detail: "Expected value matched"))
+                            report.successes.append(StepResult(id: item.id, title: item.title, status: .success, detail: L10n.string(.verifyExpectedValueMatched, locale: locale)))
                         } else {
-                            report.failures.append(StepResult(id: item.id, title: item.title, status: .failed, detail: "Expected \(expectedValue), got \(output)"))
+                            report.failures.append(StepResult(id: item.id, title: item.title, status: .failed, detail: L10n.format(.verifyExpectedValueMismatch, locale: locale, expectedValue, output)))
                         }
                     } else {
-                        report.successes.append(StepResult(id: item.id, title: item.title, status: .success, detail: "Command succeeded"))
+                        report.successes.append(StepResult(id: item.id, title: item.title, status: .success, detail: L10n.string(.verifyCommandSucceeded, locale: locale)))
                     }
                 } catch {
                     report.failures.append(StepResult(id: item.id, title: item.title, status: .failed, detail: error.localizedDescription))
@@ -63,7 +70,7 @@ public struct VerifyEngine {
                 continue
             }
 
-            report.skipped.append(StepResult(id: item.id, title: item.title, status: .skipped, detail: "No supported verify spec"))
+            report.skipped.append(StepResult(id: item.id, title: item.title, status: .skipped, detail: L10n.string(.verifyUnsupportedSpec, locale: locale)))
         }
 
         return report
