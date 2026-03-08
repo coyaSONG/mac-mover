@@ -24,6 +24,10 @@
 		4C1E7063B90FEFAAAE8785D8 /* Exporters.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1626C1F7A3AC61D97D68460E /* Exporters.framework */; };
 		4F54A0180C2F4E26A96D3A17 /* Localization.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4F54A0180C2F4E26A96D3A01 /* Localization.framework */; };
 		4F54A0180C2F4E26A96D3A16 /* Localization.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4F54A0180C2F4E26A96D3A01 /* Localization.framework */; };
+		4F54A0180C2F4E26A96D3A23 /* Localization.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4F54A0180C2F4E26A96D3A01 /* Localization.framework */; };
+		4F54A0180C2F4E26A96D3A24 /* Localization.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4F54A0180C2F4E26A96D3A01 /* Localization.framework */; };
+		4F54A0180C2F4E26A96D3A25 /* Localization.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4F54A0180C2F4E26A96D3A01 /* Localization.framework */; };
+		4F54A0180C2F4E26A96D3A26 /* Localization.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4F54A0180C2F4E26A96D3A01 /* Localization.framework */; };
 		512C751AD0A1DDB31A51C54E /* CoreBehaviorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59AA12AE32C95C358661BE69 /* CoreBehaviorTests.swift */; };
 		520C2FB32B4FDB18314C6C5C /* MacMoverApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A777B0C703BD2A3E9300DBF7 /* MacMoverApp.swift */; };
 		4F54A0180C2F4E26A96D3A12 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A7F5D83EDCA3664B70DB9F01 /* Cocoa.framework */; };
@@ -322,6 +326,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A78A2F1CACBF893294E146DE /* Cocoa.framework in Frameworks */,
+				4F54A0180C2F4E26A96D3A23 /* Localization.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -330,6 +335,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				9404074BADE3C1CB248C04C1 /* Cocoa.framework in Frameworks */,
+				4F54A0180C2F4E26A96D3A25 /* Localization.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -338,6 +344,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				1F2609EA3219EAC57AD21749 /* Cocoa.framework in Frameworks */,
+				4F54A0180C2F4E26A96D3A26 /* Localization.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -346,6 +353,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				332FCBA589D252ECF28FE56A /* Cocoa.framework in Frameworks */,
+				4F54A0180C2F4E26A96D3A24 /* Localization.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -658,6 +666,7 @@
 				2C52C3243BDEAF075148AA80 /* PBXTargetDependency */,
 				1397C6541E7E7B461EBF7716 /* PBXTargetDependency */,
 				30F7D09CC2B29FF578431506 /* PBXTargetDependency */,
+				4F54A0180C2F4E26A96D3A2A /* PBXTargetDependency */,
 			);
 			name = Importers;
 			productName = Importers;
@@ -677,6 +686,7 @@
 			);
 			dependencies = (
 				6240F9F0A861FB8E43FCAE5A /* PBXTargetDependency */,
+				4F54A0180C2F4E26A96D3A27 /* PBXTargetDependency */,
 			);
 			name = Core;
 			productName = Core;
@@ -698,6 +708,7 @@
 				BAEC6F6E95B5AF6AB0F29DB5 /* PBXTargetDependency */,
 				EB448AD79B56F6679D9E014E /* PBXTargetDependency */,
 				31797B2E46091799FE6BCB97 /* PBXTargetDependency */,
+				4F54A0180C2F4E26A96D3A29 /* PBXTargetDependency */,
 			);
 			name = Exporters;
 			productName = Exporters;
@@ -741,6 +752,7 @@
 			dependencies = (
 				240EF8B974DD50691571D6A7 /* PBXTargetDependency */,
 				3A16F28D1954AD50D61D28BB /* PBXTargetDependency */,
+				4F54A0180C2F4E26A96D3A28 /* PBXTargetDependency */,
 			);
 			name = Reporting;
 			productName = Reporting;
@@ -1080,6 +1092,30 @@
 			targetProxy = 4F54A0180C2F4E26A96D3A15 /* PBXContainerItemProxy */;
 		};
 		4F54A0180C2F4E26A96D3A19 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = Localization;
+			target = 4F54A0180C2F4E26A96D3A11 /* Localization */;
+			targetProxy = 4F54A0180C2F4E26A96D3A15 /* PBXContainerItemProxy */;
+		};
+		4F54A0180C2F4E26A96D3A27 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = Localization;
+			target = 4F54A0180C2F4E26A96D3A11 /* Localization */;
+			targetProxy = 4F54A0180C2F4E26A96D3A15 /* PBXContainerItemProxy */;
+		};
+		4F54A0180C2F4E26A96D3A28 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = Localization;
+			target = 4F54A0180C2F4E26A96D3A11 /* Localization */;
+			targetProxy = 4F54A0180C2F4E26A96D3A15 /* PBXContainerItemProxy */;
+		};
+		4F54A0180C2F4E26A96D3A29 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = Localization;
+			target = 4F54A0180C2F4E26A96D3A11 /* Localization */;
+			targetProxy = 4F54A0180C2F4E26A96D3A15 /* PBXContainerItemProxy */;
+		};
+		4F54A0180C2F4E26A96D3A2A /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = Localization;
 			target = 4F54A0180C2F4E26A96D3A11 /* Localization */;
